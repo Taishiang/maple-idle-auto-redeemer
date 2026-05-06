@@ -1,128 +1,131 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maple Idle Auto Redeemer</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body{
-      margin:0;
-      background:#0f172a;
-      color:white;
-      font-family:Arial,"Noto Sans TC",sans-serif;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:100vh;
-      overflow:hidden;
-    }
+<title>Maple Idle Auto Redeemer</title>
 
-    .bg{
-      position:fixed;
-      inset:0;
-      background:
-      radial-gradient(circle at top left,#f9731630,transparent 30%),
-      radial-gradient(circle at bottom right,#ec489930,transparent 30%);
-    }
+<style>
 
-    .card{
-      position:relative;
-      z-index:2;
-      width:90%;
-      max-width:860px;
-      background:rgba(255,255,255,.05);
-      backdrop-filter:blur(18px);
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:32px;
-      padding:60px;
-      text-align:center;
-      box-shadow:0 20px 80px rgba(0,0,0,.45);
-    }
+body{
+  margin:0;
+  background:#0f172a;
+  color:white;
+  font-family:Arial,"Noto Sans TC",sans-serif;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  overflow:hidden;
+}
 
-    h1{
-      font-size:64px;
-      margin:0;
-      font-weight:900;
-      letter-spacing:-2px;
-    }
+.bg{
+  position:fixed;
+  inset:0;
+  background:
+  radial-gradient(circle at top left,#f9731630,transparent 30%),
+  radial-gradient(circle at bottom right,#ec489930,transparent 30%);
+}
 
-    .gradient{
-      background:linear-gradient(90deg,#f97316,#ec4899);
-      -webkit-background-clip:text;
-      -webkit-text-fill-color:transparent;
-    }
+.card{
+  position:relative;
+  z-index:2;
+  width:90%;
+  max-width:860px;
+  background:rgba(255,255,255,.05);
+  backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:32px;
+  padding:60px;
+  text-align:center;
+  box-shadow:0 20px 80px rgba(0,0,0,.45);
+}
 
-    p{
-      margin-top:24px;
-      font-size:20px;
-      color:#cbd5e1;
-      line-height:1.8;
-    }
+h1{
+  font-size:64px;
+  margin:0;
+  font-weight:900;
+  letter-spacing:-2px;
+}
 
-    .buttons{
-      margin-top:40px;
-      display:flex;
-      gap:18px;
-      justify-content:center;
-      flex-wrap:wrap;
-    }
+.gradient{
+  background:linear-gradient(90deg,#f97316,#ec4899);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
 
-    a{
-      text-decoration:none;
-      color:white;
-      font-weight:800;
-      padding:18px 30px;
-      border-radius:20px;
-      transition:.2s;
-      display:inline-block;
-    }
+p{
+  margin-top:24px;
+  font-size:20px;
+  color:#cbd5e1;
+  line-height:1.8;
+}
 
-    a:hover{
-      transform:translateY(-2px);
-    }
+.buttons{
+  margin-top:40px;
+  display:flex;
+  gap:18px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
 
-    .install{
-      background:linear-gradient(135deg,#f97316,#ec4899);
-      box-shadow:0 10px 30px rgba(249,115,22,.3);
-    }
+a{
+  text-decoration:none;
+  color:white;
+  font-weight:800;
+  padding:18px 30px;
+  border-radius:20px;
+  transition:.2s;
+  display:inline-block;
+}
 
-    .official{
-      background:#1e293b;
-      border:1px solid rgba(255,255,255,.08);
-    }
+a:hover{
+  transform:translateY(-2px);
+}
 
-    .footer{
-      margin-top:40px;
-      font-size:15px;
-      color:#94a3b8;
-      line-height:2;
-    }
+.install{
+  background:linear-gradient(135deg,#f97316,#ec4899);
+  box-shadow:0 10px 30px rgba(249,115,22,.3);
+}
 
-    @media (max-width:768px){
+.official{
+  background:#1e293b;
+  border:1px solid rgba(255,255,255,.08);
+}
 
-      .card{
-        padding:40px 24px;
-      }
+.footer{
+  margin-top:40px;
+  font-size:15px;
+  color:#94a3b8;
+  line-height:2;
+}
 
-      h1{
-        font-size:42px;
-      }
+@media (max-width:768px){
 
-      p{
-        font-size:17px;
-      }
+  .card{
+    padding:40px 24px;
+  }
 
-      .buttons{
-        flex-direction:column;
-      }
+  h1{
+    font-size:42px;
+  }
 
-      a{
-        width:100%;
-      }
+  p{
+    font-size:17px;
+  }
 
-    }
-  </style>
+  .buttons{
+    flex-direction:column;
+  }
+
+  a{
+    width:100%;
+  }
+
+}
+
+</style>
 </head>
 
 <body>
@@ -131,62 +134,76 @@
 
 <div class="card">
 
-  <h1>
-    🍁 Maple Idle
-    <span class="gradient">Auto Redeemer</span>
-  </h1>
+<h1>
+🍁 Maple Idle
+<span class="gradient">Auto Redeemer</span>
+</h1>
 
-  <p>
-    MapleStory Idle 官方頁批次兌換工具<br>
-    支援 UID 保存、自動確認、自動關閉彈窗。
-  </p>
+<p>
+MapleStory Idle 官方頁批次兌換工具<br>
+支援 UID 保存、自動確認、自動關閉彈窗。
+</p>
 
-  <div class="buttons">
+<div class="buttons">
 
-    <a class="install"
-    href="https://addons.mozilla.org/zh-TW/firefox/addon/tampermonkey/"
-    target="_blank">
+<a class="install" id="tamperBtn" href="#">
+🦊 安裝 Tampermonkey
+</a>
 
-      🦊 Firefox 安裝 Tampermonkey
+<a class="install"
+href="https://raw.githubusercontent.com/Taishiang/maple-idle-auto-redeemer/main/maple-idle.user.js">
 
-    </a>
+🚀 安裝兌換腳本
 
-    <a class="install"
-    href="https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo"
-    target="_blank">
+</a>
 
-      🌐 Chrome 安裝 Tampermonkey
+<a class="official"
+href="https://mcoupon.nexon.com/maplestoryidle?lang=zh-TW"
+target="_blank">
 
-    </a>
+🔗 官方兌換頁
 
-    <a class="install"
-    href="https://raw.githubusercontent.com/Taishiang/maple-idle-auto-redeemer/main/maple-idle.user.js">
-
-      🚀 安裝兌換腳本
-
-    </a>
-
-    <a class="official"
-    href="https://mcoupon.nexon.com/maplestoryidle?lang=zh-TW"
-    target="_blank">
-
-      🔗 官方兌換頁
-
-    </a>
-
-  </div>
-
-  <div class="footer">
-    使用步驟：<br>
-
-    ① 先依照你的瀏覽器安裝 Tampermonkey<br>
-    ② 回來點「安裝兌換腳本」<br>
-    ③ 打開官方兌換頁，右上角會自動出現工具 UI<br><br>
-
-    此工具為非官方玩家輔助工具
-  </div>
+</a>
 
 </div>
+
+<div class="footer">
+
+使用步驟：<br>
+
+① 點「安裝 Tampermonkey」<br>
+② 安裝完成後回來點「安裝兌換腳本」<br>
+③ 打開官方兌換頁即可自動出現 UI<br><br>
+
+此工具為非官方玩家輔助工具
+
+</div>
+
+</div>
+
+<script>
+
+const ua = navigator.userAgent.toLowerCase();
+const btn = document.getElementById('tamperBtn');
+
+if (ua.includes('firefox')) {
+
+  btn.href =
+  'https://addons.mozilla.org/zh-TW/firefox/addon/tampermonkey/';
+
+  btn.innerText = '🦊 Firefox 安裝 Tampermonkey';
+
+}
+else {
+
+  btn.href =
+  'https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo';
+
+  btn.innerText = '🌐 Chrome/Edge 安裝 Tampermonkey';
+
+}
+
+</script>
 
 </body>
 </html>
