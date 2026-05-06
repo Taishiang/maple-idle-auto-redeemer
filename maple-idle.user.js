@@ -1,10 +1,12 @@
 // ==UserScript==
 // @name         MapleStory Idle Auto Redeemer Pro
 // @namespace    maple-idle-redeem-pro
-// @version      3.0.0
+// @version      3.0.1
 // @description  MapleStory Idle 官方頁批次自動兌換，美化 UI，自動儲存 UID/序號
 // @match        https://mcoupon.nexon.com/maplestoryidle*
 // @grant        none
+// @downloadURL  https://raw.githubusercontent.com/Taishiang/maple-idle-auto-redeemer/main/maple-idle.user.js
+// @updateURL    https://raw.githubusercontent.com/Taishiang/maple-idle-auto-redeemer/main/maple-idle.user.js
 // ==/UserScript==
 
 (function () {
