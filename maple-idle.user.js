@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MapleStory Idle Auto Redeemer Pro
 // @namespace    maple-idle-redeem-pro
-// @version      3.0.1
+// @version      3.0.2
 // @description  MapleStory Idle 官方頁批次自動兌換，美化 UI，自動儲存 UID/序號
 // @match        https://mcoupon.nexon.com/maplestoryidle*
 // @grant        none
@@ -48,12 +48,15 @@
   }
 
   function status(msg) {
-    $('#mapleStatus').textContent = msg;
+    const el = $('#mapleStatus');
+    if (el) el.textContent = msg;
   }
 
   function progress(now, total) {
-    $('#mapleProgressText').textContent = `${now}/${total}`;
-    $('#mapleProgressBar').style.width = total ? `${Math.round(now / total * 100)}%` : '0%';
+    const text = $('#mapleProgressText');
+    const bar = $('#mapleProgressBar');
+    if (text) text.textContent = `${now}/${total}`;
+    if (bar) bar.style.width = total ? `${Math.round(now / total * 100)}%` : '0%';
   }
 
   function setValue(el, val) {
@@ -226,9 +229,7 @@
         font-family: Inter, "Noto Sans TC", Arial, sans-serif;
       }
 
-      #maplePanel * {
-        box-sizing: border-box;
-      }
+      #maplePanel * { box-sizing: border-box; }
 
       #maplePanel .card {
         background: rgba(15,23,42,.88);
@@ -391,9 +392,7 @@
         transition: .18s ease;
       }
 
-      #maplePanel .actions button:hover {
-        transform: translateY(-1px);
-      }
+      #maplePanel .actions button:hover { transform: translateY(-1px); }
 
       #maplePanel .start {
         background: linear-gradient(135deg, #22c55e, #16a34a);
@@ -455,7 +454,14 @@
     log('面板已載入，UID 與設定會自動儲存。', 'ok');
   }
 
-  window.addEventListener('load', () => {
+  function startMaplePanel() {
     setTimeout(createPanel, 1000);
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    window.addEventListener('load', startMaplePanel);
+  } else {
+    startMaplePanel();
+  }
+
 })();
