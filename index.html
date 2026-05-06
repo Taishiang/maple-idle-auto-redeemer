@@ -30,7 +30,7 @@
       position:relative;
       z-index:2;
       width:90%;
-      max-width:760px;
+      max-width:860px;
       background:rgba(255,255,255,.05);
       backdrop-filter:blur(18px);
       border:1px solid rgba(255,255,255,.08);
@@ -72,9 +72,10 @@
       text-decoration:none;
       color:white;
       font-weight:800;
-      padding:18px 34px;
+      padding:18px 30px;
       border-radius:20px;
       transition:.2s;
+      display:inline-block;
     }
 
     a:hover{
@@ -93,9 +94,33 @@
 
     .footer{
       margin-top:40px;
-      font-size:14px;
-      color:#64748b;
-      line-height:1.8;
+      font-size:15px;
+      color:#94a3b8;
+      line-height:2;
+    }
+
+    @media (max-width:768px){
+
+      .card{
+        padding:40px 24px;
+      }
+
+      h1{
+        font-size:42px;
+      }
+
+      p{
+        font-size:17px;
+      }
+
+      .buttons{
+        flex-direction:column;
+      }
+
+      a{
+        width:100%;
+      }
+
     }
   </style>
 </head>
@@ -122,14 +147,22 @@
     href="https://addons.mozilla.org/zh-TW/firefox/addon/tampermonkey/"
     target="_blank">
 
-      🦊 安裝 Tampermonkey
+      🦊 Firefox 安裝 Tampermonkey
+
+    </a>
+
+    <a class="install"
+    href="https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo"
+    target="_blank">
+
+      🌐 Chrome 安裝 Tampermonkey
 
     </a>
 
     <a class="install"
     href="https://raw.githubusercontent.com/Taishiang/maple-idle-auto-redeemer/main/maple-idle.user.js">
 
-      🚀 安裝腳本
+      🚀 安裝兌換腳本
 
     </a>
 
@@ -144,9 +177,11 @@
   </div>
 
   <div class="footer">
-    ① 先安裝 Tampermonkey<br>
-    ② 安裝 Maple Idle Auto Redeemer 腳本<br>
-    ③ 打開官方兌換頁即可自動出現 UI<br><br>
+    使用步驟：<br>
+
+    ① 先依照你的瀏覽器安裝 Tampermonkey<br>
+    ② 回來點「安裝兌換腳本」<br>
+    ③ 打開官方兌換頁，右上角會自動出現工具 UI<br><br>
 
     此工具為非官方玩家輔助工具
   </div>
