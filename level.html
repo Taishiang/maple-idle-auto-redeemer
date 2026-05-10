@@ -23,7 +23,7 @@ h2{text-align:center;margin:8px 0 18px}
 .value{font-size:16px;font-weight:700}
 button{width:100%;border:none;border-radius:12px;padding:13px;font-size:16px;font-weight:800;color:#fff;background:#4f7cff;cursor:pointer}
 .secondary{background:#6b7280;margin-top:10px}
-.debug{display:none;white-space:pre-wrap;font-size:12px;background:#f3f4f6;border-radius:10px;padding:10px}
+.debug{display:none;white-space:pre-wrap;font-size:12px;background:#f3f4f6;border-radius:10px;padding:10px;overflow:auto}
 </style>
 </head>
 
@@ -35,7 +35,7 @@ button{width:100%;border:none;border-radius:12px;padding:13px;font-size:16px;fon
 
 <h2>掛機效率分析器</h2>
 
-<div class="card upload" onclick="upload.click()">
+<div class="card upload" id="uploadArea">
 📷 上傳 / 貼上截圖 AI 分析
 <input type="file" id="upload" accept="image/*" hidden>
 <img id="preview">
@@ -84,232 +84,243 @@ button{width:100%;border:none;border-radius:12px;padding:13px;font-size:16px;fon
 </div>
 
 <script>
-
 let lastShare = "";
+
+const upload = document.getElementById("upload");
+const uploadArea = document.getElementById("uploadArea");
+const preview = document.getElementById("preview");
+const bar = document.getElementById("bar");
+const progressText = document.getElementById("progressText");
+const debugBox = document.getElementById("debugBox");
+
+const levelUI = document.getElementById("levelUI");
+const needTimeUI = document.getElementById("needTimeUI");
+const startExpUI = document.getElementById("startExpUI");
+const endExpUI = document.getElementById("endExpUI");
+const gainExpUI = document.getElementById("gainExpUI");
+const remainUI = document.getElementById("remainUI");
+const perHourUI = document.getElementById("perHourUI");
+const expPerMinUI = document.getElementById("expPerMinUI");
+const expPerHourBoxUI = document.getElementById("expPerHourBoxUI");
+const perDayUI = document.getElementById("perDayUI");
+const playtimeUI = document.getElementById("playtimeUI");
+const monsterMinUI = document.getElementById("monsterMinUI");
+const monsterHourUI = document.getElementById("monsterHourUI");
+
+uploadArea.addEventListener("click", () => upload.click());
 
 upload.addEventListener("change", async e => {
   const file = e.target.files[0];
-  if(file) run(file);
+  if (file) run(file);
 });
 
 document.addEventListener("paste", e => {
-  for(const item of e.clipboardData.items){
-    if(item.type.includes("image")){
+  if (!e.clipboardData) return;
+
+  for (const item of e.clipboardData.items) {
+    if (item.type.includes("image")) {
       run(item.getAsFile());
       break;
     }
   }
 });
 
-async function run(file){
-
+async function run(file) {
   preview.src = URL.createObjectURL(file);
   preview.style.display = "block";
 
-  setStatus("AI 分析中...",30);
+  resetUI();
+  setStatus("AI 分析中...", 30);
 
-  try{
-
+  try {
     const image = await fileToBase64(file);
 
-    const response = await fetch("/api/analyze",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({image})
+    const response = await fetch("/api/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image })
     });
 
-    const data = await response.json();
+    const rawText = await response.text();
+    let data;
 
-    debugBox.innerText =
-      JSON.stringify(data,null,2);
+    try {
+      data = JSON.parse(rawText);
+    } catch (e) {
+      data = { error: "後端回傳不是 JSON", raw: rawText };
+    }
 
-    if(!response.ok || data.error){
+    debugBox.innerText = JSON.stringify(data, null, 2);
 
-      setStatus("AI 分析失敗",100);
-
+    if (!response.ok || data.error) {
+      setStatus("AI 分析失敗，請查看 AI 回傳資料", 100);
       return;
     }
 
     render(data);
+    setStatus("AI 分析完成", 100);
 
-    setStatus("AI 分析完成",100);
-
-  }catch(err){
-
+  } catch (err) {
     console.error(err);
-
     debugBox.innerText = String(err);
-
-    setStatus("AI 分析失敗",100);
+    setStatus("AI 分析失敗，請查看 AI 回傳資料", 100);
   }
 }
 
-function fileToBase64(file){
-
-  return new Promise((resolve,reject)=>{
-
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
-
-    reader.onload = ()=>resolve(reader.result);
-
+    reader.onload = () => resolve(reader.result);
     reader.onerror = reject;
-
     reader.readAsDataURL(file);
-
   });
 }
 
-function render(data){
-
-  const level = Number(data.level);
-  const start = Number(data.startExp);
-  const end = Number(data.endExp);
+function render(data) {
+  const level = num(data.level);
+  const start = num(data.startExp);
+  const end = num(data.endExp);
   const hours = parseTimeToHours(data.playTime);
-  const monster = Number(data.monsterValue);
+  const monster = num(data.monsterValue);
+
+  if (!isFinite(level) || !isFinite(start) || !isFinite(end)) {
+    setStatus("AI 資料不完整，請查看 AI 回傳資料", 100);
+    return;
+  }
 
   const gain = end - start;
-  const perHour = gain / hours;
-  const perMin = perHour / 60;
-  const perDay = perHour * 24;
-  const remain = 100 - end;
-  const needHours = remain / perHour;
+  const remain = Math.max(0, 100 - end);
 
-  const d = Math.floor(needHours / 24);
-  const h = Math.floor(needHours % 24);
+  let perHour = NaN;
+  let perMin = NaN;
+  let perDay = NaN;
+  let needHours = NaN;
+
+  if (hours > 0 && gain > 0) {
+    perHour = gain / hours;
+    perMin = perHour / 60;
+    perDay = perHour * 24;
+    needHours = remain / perHour;
+  }
+
+  const d = isFinite(needHours) ? Math.floor(needHours / 24) : 0;
+  const h = isFinite(needHours) ? Math.floor(needHours % 24) : 0;
 
   let monsterPerMinute = "-";
   let monsterPerHour = "-";
 
-  if(data.monsterMode === "minute"){
-
-    monsterPerMinute = fmt(monster,1);
-    monsterPerHour = fmt(monster * 60,0);
-
-  }else if(data.monsterMode === "hour"){
-
-    monsterPerMinute = fmt(monster / 60,1);
-    monsterPerHour = fmt(monster,0);
-
-  }else if(data.monsterMode === "total"){
-
-    const perHourMonster = monster / hours;
-
-    monsterPerMinute = fmt(perHourMonster / 60,1);
-    monsterPerHour = fmt(perHourMonster,0);
+  if (isFinite(monster) && monster > 0) {
+    if (data.monsterMode === "minute") {
+      monsterPerMinute = fmt(monster, 1);
+      monsterPerHour = fmt(monster * 60, 0);
+    } else if (data.monsterMode === "hour") {
+      monsterPerMinute = fmt(monster / 60, 1);
+      monsterPerHour = fmt(monster, 0);
+    } else if (data.monsterMode === "total" && hours > 0) {
+      const perHourMonster = monster / hours;
+      monsterPerMinute = fmt(perHourMonster / 60, 1);
+      monsterPerHour = fmt(perHourMonster, 0);
+    }
   }
 
-  levelUI.innerText =
-    Lv.${level} → Lv.${level+1};
+  levelUI.innerText = `Lv.${level} → Lv.${level + 1}`;
+  needTimeUI.innerText = isFinite(needHours) ? `${d}天 ${h}小時` : "-";
+  startExpUI.innerText = `${fmt(start, 3)}%`;
+  endExpUI.innerText = `${fmt(end, 3)}%`;
+  gainExpUI.innerText = `${fmt(gain, 3)}%`;
+  remainUI.innerText = `${fmt(remain, 3)}%`;
 
-  needTimeUI.innerText =
-    ${d}天 ${h}小時;
+  perHourUI.innerText = isFinite(perHour) ? `${fmt(perHour, 3)}% / 小時` : "-";
+  expPerMinUI.innerText = isFinite(perMin) ? `${fmt(perMin, 4)}%` : "-";
+  expPerHourBoxUI.innerText = isFinite(perHour) ? `${fmt(perHour, 3)}%` : "-";
+  perDayUI.innerText = isFinite(perDay) ? `${fmt(perDay, 3)}%` : "-";
+  playtimeUI.innerText = data.playTime || "-";
 
-  startExpUI.innerText =
-    fmt(start,3)+"%";
+  monsterMinUI.innerText = monsterPerMinute === "-" ? "-" : `${monsterPerMinute} 隻`;
+  monsterHourUI.innerText = monsterPerHour === "-" ? "-" : `${monsterPerHour} 隻`;
 
-  endExpUI.innerText =
-    fmt(end,3)+"%";
-
-  gainExpUI.innerText =
-    fmt(gain,3)+"%";
-
-  remainUI.innerText =
-    fmt(remain,3)+"%";
-
-  perHourUI.innerText =
-    fmt(perHour,3)+"% / 小時";
-
-  expPerMinUI.innerText =
-    fmt(perMin,4)+"%";
-
-  expPerHourBoxUI.innerText =
-    fmt(perHour,3)+"%";
-
-  perDayUI.innerText =
-    fmt(perDay,3)+"%";
-
-  playtimeUI.innerText =
-    data.playTime || "-";
-
-  monsterMinUI.innerText =
-    monsterPerMinute === "-"
-      ? "-"
-      : monsterPerMinute + " 隻";
-
-  monsterHourUI.innerText =
-    monsterPerHour === "-"
-      ? "-"
-      : monsterPerHour + " 隻";
-
-  bar.style.width =
-    Math.min(end,100)+"%";
-
-  progressText.innerText =
-    目前 ${fmt(end,3)}% / 100% ｜ 還差 ${fmt(remain,3)}%;
+  bar.style.width = `${Math.min(Math.max(end, 0), 100)}%`;
+  progressText.innerText = `目前 ${fmt(end, 3)}% / 100% ｜ 還差 ${fmt(remain, 3)}%`;
 
   lastShare =
-掛機效率分析 Lv.${level} → Lv.${level+1} 目前 EXP：${fmt(end,3)}% EXP效率：約 ${fmt(perHour,3)}% / 小時 預估升等：${d}天 ${h}小時 上線時間：${data.playTime};
+`掛機效率分析 ${levelUI.innerText}
+目前 EXP：${fmt(end, 3)}%
+獲得 EXP：${fmt(gain, 3)}%
+EXP效率：約 ${isFinite(perHour) ? fmt(perHour, 3) : "-"}% / 小時
+預估升等：${isFinite(needHours) ? `${d}天 ${h}小時` : "-"}
+上線時間：${data.playTime || "-"}`;
 }
 
-function parseTimeToHours(str){
+function parseTimeToHours(str) {
+  if (!str) return 0;
 
-  if(!str) return 0;
+  const text = String(str);
+  const m = text.match(/(\d+):(\d+):(\d+)/);
 
-  const m =
-    String(str).match(
-      /(\d+):(\d+):(\d+)/
-    );
+  if (m) {
+    return Number(m[1]) + Number(m[2]) / 60 + Number(m[3]) / 3600;
+  }
 
-  if(!m) return 0;
+  const h = text.match(/(\d+(?:\.\d+)?)\s*(小時|hr|hour)/i);
+  const min = text.match(/(\d+(?:\.\d+)?)\s*(分鐘|分|min|minute)/i);
+  const sec = text.match(/(\d+(?:\.\d+)?)\s*(秒|sec|second)/i);
 
-  return (
-    Number(m[1]) +
-    Number(m[2])/60 +
-    Number(m[3])/3600
-  );
+  let total = 0;
+  if (h) total += Number(h[1]);
+  if (min) total += Number(min[1]) / 60;
+  if (sec) total += Number(sec[1]) / 3600;
+
+  return total;
 }
 
-function fmt(n,d=3){
+function num(v) {
+  if (v === null || v === undefined || v === "") return NaN;
+  return Number(String(v).replace("%", "").trim());
+}
 
-  if(!isFinite(n))
-    return "-";
+function fmt(n, d = 3) {
+  if (!isFinite(n)) return "-";
 
   return Number(n)
     .toFixed(d)
-    .replace(/.?0+$/,"");
+    .replace(/\.?0+$/, "");
 }
 
-function setStatus(text,progress){
-
+function setStatus(text, progress) {
   progressText.innerText = text;
-
-  bar.style.width = progress+"%";
+  bar.style.width = `${progress}%`;
 }
 
-function copyResult(){
+function resetUI() {
+  lastShare = "";
+  levelUI.innerText = "-";
+  needTimeUI.innerText = "-";
+  startExpUI.innerText = "-";
+  endExpUI.innerText = "-";
+  gainExpUI.innerText = "-";
+  remainUI.innerText = "-";
+  perHourUI.innerText = "-";
+  expPerMinUI.innerText = "-";
+  expPerHourBoxUI.innerText = "-";
+  perDayUI.innerText = "-";
+  playtimeUI.innerText = "-";
+  monsterMinUI.innerText = "-";
+  monsterHourUI.innerText = "-";
+}
 
-  if(!lastShare){
-
+function copyResult() {
+  if (!lastShare) {
     alert("尚未有結果");
-
     return;
   }
 
   navigator.clipboard.writeText(lastShare);
-
   alert("已複製結果");
 }
 
-function toggleDebug(){
-
-  debugBox.style.display =
-    debugBox.style.display === "block"
-      ? "none"
-      : "block";
+function toggleDebug() {
+  debugBox.style.display = debugBox.style.display === "block" ? "none" : "block";
 }
-
 </script>
 
 </body>
