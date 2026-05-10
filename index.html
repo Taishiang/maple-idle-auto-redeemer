@@ -3,206 +3,71 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Maple Idle Auto Redeemer</title>
-
+<title>Maple Idle Tools</title>
 <style>
-
-body{
-  margin:0;
-  background:#0f172a;
-  color:white;
-  font-family:Arial,"Noto Sans TC",sans-serif;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  min-height:100vh;
-  overflow:hidden;
-}
-
-.bg{
-  position:fixed;
-  inset:0;
-  background:
-  radial-gradient(circle at top left,#f9731630,transparent 30%),
-  radial-gradient(circle at bottom right,#ec489930,transparent 30%);
-}
-
-.card{
-  position:relative;
-  z-index:2;
-  width:90%;
-  max-width:860px;
-  background:rgba(255,255,255,.05);
-  backdrop-filter:blur(18px);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:32px;
-  padding:60px;
-  text-align:center;
-  box-shadow:0 20px 80px rgba(0,0,0,.45);
-}
-
-h1{
-  font-size:64px;
-  margin:0;
-  font-weight:900;
-  letter-spacing:-2px;
-}
-
-.gradient{
-  background:linear-gradient(90deg,#f97316,#ec4899);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-}
-
-p{
-  margin-top:24px;
-  font-size:20px;
-  color:#cbd5e1;
-  line-height:1.8;
-}
-
-.buttons{
-  margin-top:40px;
-  display:flex;
-  gap:18px;
-  justify-content:center;
-  flex-wrap:wrap;
-}
-
-a{
-  text-decoration:none;
-  color:white;
-  font-weight:800;
-  padding:18px 30px;
-  border-radius:20px;
-  transition:.2s;
-  display:inline-block;
-}
-
-a:hover{
-  transform:translateY(-2px);
-}
-
-.install{
-  background:linear-gradient(135deg,#f97316,#ec4899);
-  box-shadow:0 10px 30px rgba(249,115,22,.3);
-}
-
-.official{
-  background:#1e293b;
-  border:1px solid rgba(255,255,255,.08);
-}
-
-.footer{
-  margin-top:40px;
-  font-size:15px;
-  color:#94a3b8;
-  line-height:2;
-}
-
-@media (max-width:768px){
-
-  .card{
-    padding:40px 24px;
-  }
-
-  h1{
-    font-size:42px;
-  }
-
-  p{
-    font-size:17px;
-  }
-
-  .buttons{
-    flex-direction:column;
-  }
-
-  a{
-    width:100%;
-  }
-
-}
-
+body{margin:0;background:#0f172a;color:white;font-family:Arial,"Noto Sans TC",sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh}
+.bg{position:fixed;inset:0;background:radial-gradient(circle at top left,#f9731630,transparent 30%),radial-gradient(circle at bottom right,#ec489930,transparent 30%)}
+.card{position:relative;z-index:2;width:90%;max-width:900px;background:rgba(255,255,255,.05);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.08);border-radius:32px;padding:60px;text-align:center;box-shadow:0 20px 80px rgba(0,0,0,.45)}
+h1{font-size:64px;margin:0;font-weight:900}
+.gradient{background:linear-gradient(90deg,#f97316,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+p{margin-top:24px;font-size:20px;color:#cbd5e1;line-height:1.8}
+.buttons{margin-top:40px;display:flex;gap:18px;justify-content:center;flex-wrap:wrap}
+a{text-decoration:none;color:white;font-weight:800;padding:18px 30px;border-radius:20px;display:inline-block}
+.install{background:linear-gradient(135deg,#f97316,#ec4899)}
+.official{background:#1e293b}
+.calc{background:linear-gradient(135deg,#06b6d4,#3b82f6)}
+.footer{margin-top:40px;font-size:15px;color:#94a3b8;line-height:2}
+@media(max-width:768px){.card{padding:40px 24px}h1{font-size:42px}.buttons{flex-direction:column}a{width:100%}}
 </style>
 </head>
-
 <body>
 
 <div class="bg"></div>
 
 <div class="card">
-
-<h1>
-🍁 Maple Idle
-<span class="gradient">Auto Redeemer</span>
-</h1>
+<h1>🍁 Maple Idle <span class="gradient">Tools</span></h1>
 
 <p>
-MapleStory Idle 官方頁批次兌換工具<br>
-支援 UID 保存、自動確認、自動關閉彈窗。
+MapleStory Idle 玩家工具箱<br>
+支援批次兌換、UID 保存、升級時間計算。
 </p>
 
 <div class="buttons">
+<a class="install" id="tamperBtn" href="#">🦊 安裝 Tampermonkey</a>
 
-<a class="install" id="tamperBtn" href="#">
-🦊 安裝 Tampermonkey
-</a>
-
-<a class="install"
-href="https://raw.githubusercontent.com/Taishiang/maple-idle-auto-redeemer/main/maple-idle.user.js">
-
+<a class="install" href="https://raw.githubusercontent.com/Taishiang/maple-idle-auto-redeemer/main/maple-idle.user.js">
 🚀 安裝兌換腳本
-
 </a>
 
-<a class="official"
-href="https://mcoupon.nexon.com/maplestoryidle?lang=zh-TW"
-target="_blank">
-
+<a class="official" href="https://mcoupon.nexon.com/maplestoryidle?lang=zh-TW" target="_blank">
 🔗 官方兌換頁
-
 </a>
 
+<a class="calc" href="level.html">
+📊 升級計算器
+</a>
 </div>
 
 <div class="footer">
-
 使用步驟：<br>
-
-① 點「安裝 Tampermonkey」<br>
-② 安裝完成後回來點「安裝兌換腳本」<br>
-③ 打開官方兌換頁即可自動出現 UI<br><br>
-
+① 安裝 Tampermonkey<br>
+② 安裝兌換腳本<br>
+③ 打開官方兌換頁，自動出現 UI<br>
+④ 使用升級計算器估算掛機升級時間<br><br>
 此工具為非官方玩家輔助工具
-
 </div>
-
 </div>
 
 <script>
-
-const ua = navigator.userAgent.toLowerCase();
-const btn = document.getElementById('tamperBtn');
-
-if (ua.includes('firefox')) {
-
-  btn.href =
-  'https://addons.mozilla.org/zh-TW/firefox/addon/tampermonkey/';
-
-  btn.innerText = '🦊 Firefox 安裝 Tampermonkey';
-
+const ua=navigator.userAgent.toLowerCase();
+const btn=document.getElementById('tamperBtn');
+if(ua.includes('firefox')){
+  btn.href='https://addons.mozilla.org/zh-TW/firefox/addon/tampermonkey/';
+  btn.innerText='🦊 Firefox 安裝 Tampermonkey';
+}else{
+  btn.href='https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo';
+  btn.innerText='🌐 Chrome / Edge 安裝 Tampermonkey';
 }
-else {
-
-  btn.href =
-  'https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo';
-
-  btn.innerText = '🌐 Chrome/Edge 安裝 Tampermonkey';
-
-}
-
 </script>
 
 </body>
