@@ -244,18 +244,21 @@ async function analyzeImage(){
 
       status.innerText=`辨識 ${z.name} ${i+1}/${zones.length}...`;
 
-      const result=await Tesseract.recognize(
-        z.canvas,
-        'eng',
-        {
-          tessedit_char_whitelist:'0123456789.,:%LvVPLAYTIMEEXP() ',
-          logger:m=>{
-            if(m.status==='recognizing text'){
-              status.innerText=`辨識 ${z.name}：${Math.round(m.progress*100)}%`;
-            }
+      const lang = z.lang || 'eng';
+      const options = {
+        logger:m=>{
+          if(m.status==='recognizing text'){
+            status.innerText=`辨識 ${z.name}：${Math.round(m.progress*100)}%`;
           }
         }
-      );
+      };
+
+      // 中文標題區不要用白名單，不然「每分鐘 / 每小時 / 目前」會被吃掉
+      if(!z.noWhitelist){
+        options.tessedit_char_whitelist='0123456789.,:%LvVPLAYTIMEEXP() ';
+      }
+
+      const result=await Tesseract.recognize(z.canvas,lang,options);
 
       texts[z.key]=result.data.text;
       debugText+=`\n\n[${z.name}]\n${result.data.text}`;
@@ -390,30 +393,32 @@ async function makeOCRCanvases(file){
   const img=await loadImage(file);
   const list=[];
 
-  function add(key,name,x,y,w,h,scale){
+  function add(key,name,x,y,w,h,scale,extra={}){
     list.push({
       key,
       name,
-      canvas:makeCanvas(img,img.width*x,img.height*y,img.width*w,img.height*h,scale)
+      canvas:makeCanvas(img,img.width*x,img.height*y,img.width*w,img.height*h,scale),
+      ...extra
     });
   }
 
   // 固定 UI 區塊，不跑全圖、不抓道具列表
-  // 以 16:9 手遊截圖為基準，模擬器與手機截圖都可用。
+  // 1. 戰鬥狀況文字：用來判斷 每分鐘 / 每小時 / 目前狩獵
+  add('battleLabel','戰鬥狀況文字',0.605,0.255,0.300,0.055,8,{lang:'chi_tra+eng',noWhitelist:true});
 
-  // 右側黑框：怪物數值，只抓最右上的數字，不抓下面道具數。
-  add('monsterTop','怪物數值',0.905,0.235,0.080,0.060,12);
+  // 2. 戰鬥狀況右側數值
+  add('monsterTop','怪物數值',0.900,0.255,0.085,0.060,12);
 
-  // PLAYTIME
+  // 3. PLAYTIME
   add('playtime','上線時間',0.595,0.320,0.170,0.080,10);
 
-  // 右側 Lv + EXP：Lv.106、34.645%、34.862%
+  // 4. 右側 Lv + EXP
   add('rightLevelExp','右側等級EXP',0.805,0.315,0.180,0.095,11);
 
-  // 底部角色等級備援
+  // 5. 底部角色等級備援
   add('bottomLevel','底部等級',0.405,0.755,0.135,0.060,11);
 
-  // 底部目前 EXP 備援
+  // 6. 底部目前 EXP 備援
   add('bottomExp','底部EXP',0.015,0.925,0.340,0.060,10);
 
   return list;
@@ -448,6 +453,7 @@ function parseFixedZones(texts){
   const bottomExp=cleanOCR(texts.bottomExp||'');
   const playText=cleanOCR(texts.playtime||'');
   const monsterText=cleanOCR(texts.monsterTop||'');
+  const battleLabel=String(texts.battleLabel||'').replace(/\s+/g,'');
 
   const level=getLevelFromText(rightLevelExp)||getLevelFromText(bottomLevel);
 
@@ -478,7 +484,8 @@ function parseFixedZones(texts){
   const playtimeText=time.text;
 
   const rawMonsterNumber=firstNumber(monsterText);
-  const monsterData=normalizeMonster(rawMonsterNumber,'auto',hours,monsterText);
+  const battleMode=detectBattleMode(battleLabel,monsterText,rawMonsterNumber);
+  const monsterData=normalizeMonster(rawMonsterNumber,battleMode,hours,monsterText);
 
   if(!level){
     return {
@@ -486,6 +493,7 @@ function parseFixedZones(texts){
       reason:'固定 Lv 區塊找不到等級，請手動輸入等級',
       level,current,before,hours,
       rawMonsterNumber,
+      battleMode,
       monsters:monsterData.monsters,
       monsterPerMinuteFromOCR:monsterData.monsterPerMinute,
       monsterPerHourFromOCR:monsterData.monsterPerHour,
@@ -499,6 +507,7 @@ function parseFixedZones(texts){
       reason:'固定 EXP 區塊找不到上線前與目前 EXP，請手動修正',
       level,current,before,hours,
       rawMonsterNumber,
+      battleMode,
       monsters:monsterData.monsters,
       monsterPerMinuteFromOCR:monsterData.monsterPerMinute,
       monsterPerHourFromOCR:monsterData.monsterPerHour,
@@ -512,6 +521,7 @@ function parseFixedZones(texts){
       reason:'固定 PLAYTIME 區塊找不到上線時間，請手動修正',
       level,current,before,hours,
       rawMonsterNumber,
+      battleMode,
       monsters:monsterData.monsters,
       monsterPerMinuteFromOCR:monsterData.monsterPerMinute,
       monsterPerHourFromOCR:monsterData.monsterPerHour,
@@ -528,6 +538,7 @@ function parseFixedZones(texts){
     after:current,
     hours,
     rawMonsterNumber,
+    battleMode,
     monsters:monsterData.monsters,
     monsterPerMinuteFromOCR:monsterData.monsterPerMinute,
     monsterPerHourFromOCR:monsterData.monsterPerHour,
@@ -594,6 +605,34 @@ function firstNumber(t){
   if(!normal)return NaN;
 
   return Number(normal[0]);
+}
+
+
+function detectBattleMode(labelText,numberText,value){
+  const label=String(labelText||'')
+    .replace(/\s+/g,'')
+    .replace(/[Oo]/g,'0');
+
+  // 先看戰鬥狀況文字，這是最準規則
+  if(label.includes('每分鐘') || label.includes('分鐘')) return 'minute';
+  if(label.includes('每小時') || label.includes('小時')) return 'hour';
+  if(label.includes('目前狩獵') || label.includes('目前') || label.includes('總')) return 'total';
+
+  // OCR 中文失敗時才用數字備援
+  const raw=String(numberText||'');
+  const hasDecimal=/[\.,]/.test(raw);
+
+  // 6391.4 這種小數但大於 1000，通常是每小時
+  if(hasDecimal && isFinite(value) && value>=1000) return 'hour';
+
+  // 106.6 這種小數且小於 1000，通常是每分鐘
+  if(hasDecimal && isFinite(value) && value<1000) return 'minute';
+
+  // 11571 / 49440 這種大整數，通常是總怪物數
+  if(isFinite(value) && value>=1000) return 'total';
+
+  // 小整數極少出現在總怪物數，當每分鐘
+  return 'minute';
 }
 
 function normalizeMonster(value,mode,hours,rawText=''){
