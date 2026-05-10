@@ -1,1 +1,357 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maple Idle 圖片升級計算器</title>
 
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+<style>
+body{
+  margin:0;
+  padding:24px;
+  background:#0f172a;
+  color:white;
+  font-family:Arial,"Noto Sans TC",sans-serif;
+}
+.wrap{
+  max-width:960px;
+  margin:auto;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:28px;
+  padding:28px;
+  box-shadow:0 20px 80px rgba(0,0,0,.45);
+}
+h1{margin:0;font-size:34px}
+.sub{color:#cbd5e1;line-height:1.7}
+.back{
+  display:inline-block;
+  margin-bottom:20px;
+  text-decoration:none;
+  background:#1e293b;
+  color:white;
+  padding:12px 18px;
+  border-radius:14px;
+  font-weight:800;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:14px;
+}
+.box{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:18px;
+  padding:16px;
+}
+label{
+  font-size:14px;
+  font-weight:900;
+  display:block;
+  margin-bottom:8px;
+}
+input,textarea{
+  width:100%;
+  box-sizing:border-box;
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:14px;
+  padding:13px;
+  font-size:16px;
+  background:rgba(255,255,255,.08);
+  color:white;
+  outline:none;
+}
+textarea{
+  min-height:130px;
+}
+button{
+  width:100%;
+  margin-top:18px;
+  border:0;
+  border-radius:18px;
+  padding:17px;
+  background:linear-gradient(135deg,#06b6d4,#3b82f6);
+  color:white;
+  font-size:19px;
+  font-weight:900;
+  cursor:pointer;
+}
+.result{
+  margin-top:20px;
+  background:rgba(6,182,212,.12);
+  border:1px solid rgba(103,232,249,.35);
+  border-radius:22px;
+  padding:22px;
+}
+.big{
+  font-size:38px;
+  font-weight:900;
+  color:#67e8f9;
+  margin:8px 0;
+}
+.details{
+  line-height:1.9;
+  color:#dbeafe;
+}
+.preview{
+  max-width:100%;
+  margin-top:12px;
+  border-radius:16px;
+  display:none;
+}
+.warn{
+  margin-top:16px;
+  color:#fed7aa;
+  background:rgba(249,115,22,.12);
+  border:1px solid rgba(251,146,60,.35);
+  border-radius:16px;
+  padding:14px;
+  line-height:1.7;
+}
+@media(max-width:700px){
+  body{padding:12px}
+  .grid{grid-template-columns:1fr}
+  h1{font-size:28px}
+  .big{font-size:30px}
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<a class="back" href="index.html">← 回首頁</a>
+
+<h1>📊 Maple Idle 圖片升級計算器</h1>
+
+<p class="sub">
+上傳遊戲截圖後，系統會用 OCR 嘗試辨識 EXP%、掛機時間、怪物數。<br>
+辨識不一定 100% 準，請確認欄位後再計算。
+</p>
+
+<div class="box">
+<label>上傳遊戲截圖</label>
+<input type="file" id="imageUpload" accept="image/*">
+<img id="preview" class="preview">
+<button onclick="analyzeImage()">開始圖片辨識</button>
+<div class="warn" id="ocrStatus">尚未上傳圖片</div>
+</div>
+
+<div class="box" style="margin-top:14px">
+<label>OCR 辨識文字</label>
+<textarea id="ocrText" placeholder="辨識後文字會出現在這裡，也可以手動貼文字"></textarea>
+<button onclick="parseText()">從文字自動抓數字</button>
+</div>
+
+<div class="grid" style="margin-top:14px">
+
+<div class="box">
+<label>目前經驗 %</label>
+<input id="current" type="number" step="0.001" value="34.159">
+</div>
+
+<div class="box">
+<label>目標經驗 %</label>
+<input id="target" type="number" step="0.001" value="100">
+</div>
+
+<div class="box">
+<label>掛機前經驗 %</label>
+<input id="before" type="number" step="0.001" value="32.453">
+</div>
+
+<div class="box">
+<label>掛機後經驗 %</label>
+<input id="after" type="number" step="0.001" value="34.159">
+</div>
+
+<div class="box">
+<label>掛機時間（小時）</label>
+<input id="hours" type="number" step="0.01" value="8.43">
+</div>
+
+<div class="box">
+<label>每日掛機時數</label>
+<input id="daily" type="number" step="0.1" value="24">
+</div>
+
+<div class="box">
+<label>每分鐘怪物數（可選）</label>
+<input id="monsterMin" type="number" step="0.1" placeholder="例如 106.6">
+</div>
+
+<div class="box">
+<label>每小時怪物數（可選）</label>
+<input id="monsterHour" type="number" step="1" placeholder="例如 6400">
+</div>
+
+</div>
+
+<button onclick="calc()">計算升級時間</button>
+
+<div class="result">
+<div>預估剩餘時間</div>
+<div class="big" id="main">計算中...</div>
+<div class="details" id="detail"></div>
+</div>
+
+<div class="warn">
+小提醒：圖片 OCR 會受截圖清晰度、字體大小、背景影響。最準還是確認 EXP%、時間後再算。
+</div>
+
+</div>
+
+<script>
+let uploadedFile = null;
+
+document.getElementById('imageUpload').addEventListener('change', function(e){
+  uploadedFile = e.target.files[0];
+
+  if(!uploadedFile) return;
+
+  const img = document.getElementById('preview');
+  img.src = URL.createObjectURL(uploadedFile);
+  img.style.display = 'block';
+
+  document.getElementById('ocrStatus').innerText = '圖片已上傳，請按「開始圖片辨識」';
+});
+
+async function analyzeImage(){
+  if(!uploadedFile){
+    alert('請先上傳圖片');
+    return;
+  }
+
+  const status = document.getElementById('ocrStatus');
+  status.innerText = '辨識中，請稍等...';
+
+  try{
+    const result = await Tesseract.recognize(
+      uploadedFile,
+      'eng+chi_tra',
+      {
+        logger: m => {
+          if(m.status === 'recognizing text'){
+            status.innerText = '辨識中：' + Math.round(m.progress * 100) + '%';
+          }
+        }
+      }
+    );
+
+    const text = result.data.text;
+    document.getElementById('ocrText').value = text;
+    status.innerText = '辨識完成，已自動抓數字';
+
+    parseText();
+
+  }catch(err){
+    console.error(err);
+    status.innerText = '辨識失敗，請換清楚一點的截圖';
+  }
+}
+
+function parseText(){
+  const text = document.getElementById('ocrText').value;
+
+  if(!text.trim()){
+    alert('沒有文字可以分析');
+    return;
+  }
+
+  let found = [];
+
+  const percentMatches = text.match(/\d{1,3}\.\d{1,3}\s*%/g);
+
+  if(percentMatches && percentMatches.length){
+    found = percentMatches.map(x => parseFloat(x.replace('%','').trim()));
+
+    if(found.length >= 1){
+      document.getElementById('current').value = found[found.length - 1];
+      document.getElementById('after').value = found[found.length - 1];
+    }
+
+    if(found.length >= 2){
+      document.getElementById('before').value = found[0];
+      document.getElementById('after').value = found[1];
+      document.getElementById('current').value = found[1];
+    }
+  }
+
+  const timeMatch = text.match(/(\d{1,2})[:：](\d{2})[:：](\d{2})/);
+
+  if(timeMatch){
+    const h = Number(timeMatch[1]);
+    const m = Number(timeMatch[2]);
+    const s = Number(timeMatch[3]);
+    const totalHours = h + m / 60 + s / 3600;
+    document.getElementById('hours').value = totalHours.toFixed(2);
+  }
+
+  const minMonsterMatch =
+    text.match(/每分鐘.*?(\d+\.?\d*)/) ||
+    text.match(/min.*?(\d+\.?\d*)/i);
+
+  if(minMonsterMatch){
+    document.getElementById('monsterMin').value = minMonsterMatch[1];
+  }
+
+  const hourMonsterMatch =
+    text.match(/每小時.*?(\d+\.?\d*)/) ||
+    text.match(/hour.*?(\d+\.?\d*)/i);
+
+  if(hourMonsterMatch){
+    document.getElementById('monsterHour').value = hourMonsterMatch[1];
+  }
+
+  calc();
+}
+
+function calc(){
+
+const current=Number(document.getElementById('current').value);
+const target=Number(document.getElementById('target').value);
+const before=Number(document.getElementById('before').value);
+const after=Number(document.getElementById('after').value);
+const hours=Number(document.getElementById('hours').value);
+const daily=Number(document.getElementById('daily').value);
+
+const gain=after-before;
+const perHour=gain/hours;
+const remain=target-current;
+
+if(!isFinite(perHour) || perHour<=0 || remain<=0 || daily<=0){
+document.getElementById('main').innerText='資料錯誤或已達標';
+document.getElementById('detail').innerHTML='請確認：掛機後經驗要大於掛機前經驗，時間要大於 0。';
+return;
+}
+
+const needHours=remain/perHour;
+const days=Math.floor(needHours/daily);
+const remainHours=(needHours-days*daily).toFixed(1);
+
+document.getElementById('main').innerText=
+`約 ${days} 天 ${remainHours} 小時`;
+
+document.getElementById('detail').innerHTML=
+`
+剩餘 ${remain.toFixed(3)}%<br>
+掛機提升 ${gain.toFixed(3)}%<br>
+每小時約 ${perHour.toFixed(3)}%<br>
+每日約 ${(perHour*daily).toFixed(2)}%
+`;
+
+}
+
+document.querySelectorAll('input').forEach(input=>{
+  input.addEventListener('input', calc);
+});
+
+calc();
+</script>
+
+</body>
+</html>
