@@ -7,12 +7,13 @@
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <style>
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,"Noto Sans TC",sans-serif;background:#f5f7fb;color:#111827}.container{max-width:480px;margin:auto;padding:20px}h2{text-align:center;margin:8px 0 18px}.card{background:#fff;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 4px 14px rgba(0,0,0,.06)}.upload{text-align:center;padding:18px;border:2px dashed #d1d5db;border-radius:12px;cursor:pointer;color:#374151;font-weight:700}#preview{display:none;width:100%;margin-top:12px;border-radius:10px}.progress{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden}.bar{height:100%;width:0%;background:linear-gradient(90deg,#4f7cff,#34c759);transition:.4s ease}.progress-text{font-size:12px;color:#666;text-align:right;margin-top:6px;line-height:1.5}.main{font-size:28px;font-weight:800;color:#4f7cff;text-align:center;margin:10px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.box{background:#f9fafb;padding:10px;border-radius:10px;text-align:center}.title{font-size:12px;color:#666}.value{font-size:16px;font-weight:700;word-break:break-word}button{width:100%;border:none;border-radius:12px;padding:13px;font-size:16px;font-weight:800;color:white;background:#4f7cff;cursor:pointer}.secondary{background:#6b7280;margin-top:10px}.manual{display:none}.manual label{display:block;margin-top:10px;font-size:12px;color:#666}.manual input,.manual select{width:100%;box-sizing:border-box;margin-top:6px;padding:11px;border-radius:10px;border:1px solid #d1d5db;font-size:15px}.debug{display:none;white-space:pre-wrap;font-size:12px;line-height:1.5;color:#6b7280;background:#f3f4f6;border-radius:10px;padding:10px}.warn{color:#d97706;font-size:12px;line-height:1.5;margin-top:8px}@media(max-width:480px){.container{padding:14px}.main{font-size:24px}}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,"Noto Sans TC",sans-serif;background:#f5f7fb;color:#111827}.container{max-width:480px;margin:auto;padding:20px}.homeBtn{display:inline-block;margin-bottom:14px;padding:10px 14px;background:#4f7cff;color:#fff;text-decoration:none;border-radius:10px;font-weight:700}h2{text-align:center;margin:8px 0 18px}.card{background:#fff;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 4px 14px rgba(0,0,0,.06)}.upload{text-align:center;padding:18px;border:2px dashed #d1d5db;border-radius:12px;cursor:pointer;color:#374151;font-weight:700}#preview{display:none;width:100%;margin-top:12px;border-radius:10px}.progress{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden}.bar{height:100%;width:0%;background:linear-gradient(90deg,#4f7cff,#34c759);transition:.4s ease}.progress-text{font-size:12px;color:#666;text-align:right;margin-top:6px;line-height:1.5}.main{font-size:28px;font-weight:800;color:#4f7cff;text-align:center;margin:10px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.box{background:#f9fafb;padding:10px;border-radius:10px;text-align:center}.title{font-size:12px;color:#666}.value{font-size:16px;font-weight:700;word-break:break-word}button{width:100%;border:none;border-radius:12px;padding:13px;font-size:16px;font-weight:800;color:white;background:#4f7cff;cursor:pointer}.secondary{background:#6b7280;margin-top:10px}.manual{display:none}.manual label{display:block;margin-top:10px;font-size:12px;color:#666}.manual input,.manual select{width:100%;box-sizing:border-box;margin-top:6px;padding:11px;border-radius:10px;border:1px solid #d1d5db;font-size:15px}.debug{display:none;white-space:pre-wrap;font-size:12px;line-height:1.5;color:#6b7280;background:#f3f4f6;border-radius:10px;padding:10px}.warn{color:#d97706;font-size:12px;line-height:1.5;margin-top:8px}@media(max-width:480px){.container{padding:14px}.main{font-size:24px}}
 </style>
 </head>
 
 <body>
 <div class="container">
+<a href="index.html" class="homeBtn">← 回首頁</a>
 <h2>掛機效率分析器</h2>
 
 <div class="card upload" onclick="upload.click()">
@@ -63,235 +64,101 @@ body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,"Not
 <script>
 let lastShare="";
 
-upload.addEventListener('change',e=>{const file=e.target.files[0];if(file)run(file)});
-document.addEventListener('paste',e=>{for(let item of e.clipboardData.items){if(item.type.includes('image')){run(item.getAsFile());break}}});
+upload.addEventListener("change",e=>{const file=e.target.files[0];if(file)run(file)});
+document.addEventListener("paste",e=>{if(!e.clipboardData)return;for(const item of e.clipboardData.items){if(item.type.includes("image")){run(item.getAsFile());break}}});
 
 async function run(file){
-  preview.src=URL.createObjectURL(file);preview.style.display='block';setStatus('辨識固定 UI 區塊中...',5);
+  preview.src=URL.createObjectURL(file);preview.style.display="block";manualBox.style.display="none";warnUI.innerText="";debugBox.innerText="";setStatus("準備圖片中...",3);
   try{
-    const img=await loadImage(file);const zones=makeZones(img);const texts={};let debug='';
+    const img=await loadImage(file);const zones=makeZones(img);const texts={};let debug="";
     for(let i=0;i<zones.length;i++){
-      const z=zones[i];setStatus(`辨識 ${z.name}...`,8+Math.round((i/zones.length)*70));
-      const options={logger:m=>{if(m.status==='recognizing text'){const p=8+Math.round(((i+m.progress)/zones.length)*70);setStatus(`辨識 ${z.name}：${Math.round(m.progress*100)}%`,p)}}};
-      if(!z.noWhitelist)options.tessedit_char_whitelist='0123456789.,:%LvVPLAYTIMEEXP() ';
-      const res=await Tesseract.recognize(z.canvas,z.lang||'eng',options);
-      texts[z.key]=res.data.text;debug+=`\n\n[${z.name}]\n${res.data.text}`;
+      const z=zones[i];setStatus(`辨識 ${z.name}...`,5+Math.round((i/zones.length)*80));
+      const options={logger:m=>{if(m.status==="recognizing text"){const p=5+Math.round(((i+m.progress)/zones.length)*80);setStatus(`辨識 ${z.name}：${Math.round(m.progress*100)}%`,p)}}};
+      if(z.whitelist)options.tessedit_char_whitelist=z.whitelist;else if(!z.noWhitelist)options.tessedit_char_whitelist="0123456789.,:%LvVPLAYTIMEEXP() ";
+      const res=await Tesseract.recognize(z.canvas,z.lang||"eng",options);texts[z.key]=res.data.text||"";debug+=`\n\n[${z.name}]\n${res.data.text||""}`;
     }
-    debugBox.innerText=debug;
-    const data=parseFixedUI(texts);
-    if(!data.ok){setStatus(data.reason+'，請手動修正',100);fillManual(data);manualBox.style.display='block';return}
-    render(data);setStatus('分析完成',100);
-  }catch(err){console.error(err);setStatus('分析失敗，請用手動修正',100);manualBox.style.display='block'}
+    debugBox.innerText=debug.trim();const data=parseFixedUI(texts);
+    if(!data.ok){setStatus(data.reason+"，請手動修正",100);fillManual(data);manualBox.style.display="block";return}
+    render(data);setStatus("分析完成",100);
+  }catch(err){console.error(err);debugBox.innerText=String(err&&err.stack?err.stack:err);setStatus("分析失敗，請用手動修正",100);manualBox.style.display="block"}
 }
 
 function makeZones(img){
   const list=[];
-  function add(key,name,x,y,w,h,scale,extra={}){list.push({key,name,canvas:crop(img,x,y,w,h,scale),...extra})}
-  add('battleLabel','戰鬥狀況文字',0.600,0.245,0.310,0.060,8,{lang:'chi_tra+eng',noWhitelist:true});
-  add('monsterValue','怪物數值',0.900,0.250,0.090,0.065,12);
-  add('playtime','上線時間',0.595,0.318,0.175,0.080,10);
-  add('rightLevelExp','右側等級EXP',0.800,0.312,0.190,0.100,11);
-  add('bottomLevel','底部等級',0.390,0.745,0.160,0.075,11);
-  add('bottomExp','底部EXP',0.010,0.915,0.360,0.075,10);
+  function add(key,name,x,y,w,h,scale,extra={}){list.push({key,name,canvas:crop(img,x,y,w,h,scale,extra.mode||"threshold"),...extra})}
+  add("battleLabel","戰鬥狀況文字",0.605,0.240,0.300,0.065,8,{lang:"chi_tra+eng",noWhitelist:true,mode:"normal"});
+  add("monsterValue","怪物數值",0.895,0.245,0.090,0.070,12,{whitelist:"0123456789.,"});
+  add("playtime","上線時間",0.595,0.325,0.180,0.085,10,{whitelist:"0123456789:"});
+  add("rightLevelExp","右側等級EXP",0.785,0.315,0.205,0.110,12,{whitelist:"0123456789.,:%LvV()"});
+  add("bottomExp","底部EXP",0.000,0.935,0.360,0.055,10,{whitelist:"0123456789.,:%EXP"});
+  add("levelRightLeft","右側白字Lv",0.835,0.325,0.085,0.060,20,{mode:"normal",whitelist:"0123456789LvV."});
+  add("levelRightGreen","右側綠字Lv",0.910,0.325,0.085,0.060,20,{mode:"normal",whitelist:"0123456789LvV."});
+  add("levelRightGreenBW","右側綠字Lv黑白",0.910,0.325,0.085,0.060,22,{mode:"threshold",whitelist:"0123456789LvV."});
+  add("levelBottom","底部Lv",0.420,0.770,0.085,0.060,20,{mode:"normal",whitelist:"0123456789LvV."});
+  add("levelBottomBW","底部Lv黑白",0.420,0.770,0.085,0.060,22,{mode:"threshold",whitelist:"0123456789LvV."});
   return list;
 }
 
-function crop(img,x,y,w,h,scale){
-  const canvas=document.createElement('canvas');const sx=img.width*x,sy=img.height*y,sw=img.width*w,sh=img.height*h;
+function crop(img,x,y,w,h,scale,mode="threshold"){
+  const canvas=document.createElement("canvas");const sx=img.width*x,sy=img.height*y,sw=img.width*w,sh=img.height*h;
   canvas.width=Math.max(1,Math.round(sw*scale));canvas.height=Math.max(1,Math.round(sh*scale));
-  const ctx=canvas.getContext('2d');ctx.drawImage(img,sx,sy,sw,sh,0,0,canvas.width,canvas.height);
+  const ctx=canvas.getContext("2d",{willReadFrequently:true});ctx.drawImage(img,sx,sy,sw,sh,0,0,canvas.width,canvas.height);
+  if(mode==="normal")return canvas;
   const imageData=ctx.getImageData(0,0,canvas.width,canvas.height),d=imageData.data;
-  for(let i=0;i<d.length;i+=4){const gray=d[i]*.299+d[i+1]*.587+d[i+2]*.114;const v=gray>125?255:0;d[i]=d[i+1]=d[i+2]=v}
+  for(let i=0;i<d.length;i+=4){const gray=d[i]*0.299+d[i+1]*0.587+d[i+2]*0.114;const v=gray>125?255:0;d[i]=d[i+1]=d[i+2]=v}
   ctx.putImageData(imageData,0,0);return canvas;
 }
 
 function parseFixedUI(texts){
-  const battleLabel=cleanText(texts.battleLabel||'').replace(/\s+/g,'');
-  const monsterText=cleanText(texts.monsterValue||'');
-  const playText=cleanText(texts.playtime||'');
-  const rightLevelExp=cleanText(texts.rightLevelExp||'');
-  const bottomLevel=cleanText(texts.bottomLevel||'');
-  const bottomExp=cleanText(texts.bottomExp||'');
-  const level=getLevel(rightLevelExp)||getLevel(bottomLevel);
+  const battleLabel=cleanText(texts.battleLabel||"").replace(/\s+/g,"");
+  const monsterText=cleanText(texts.monsterValue||"");
+  const playText=cleanText(texts.playtime||"");
+  const rightLevelExp=cleanText(texts.rightLevelExp||"");
+  const bottomExp=cleanText(texts.bottomExp||"");
+  const level=chooseBestLevel([rightLevelExp,texts.levelRightLeft,texts.levelRightGreen,texts.levelRightGreenBW,texts.levelBottom,texts.levelBottomBW]);
   const rightPercents=getPercents(rightLevelExp),bottomPercents=getPercents(bottomExp);
-  let start=null,end=null;
-  if(rightPercents.length>=2){start=rightPercents[0];end=rightPercents[rightPercents.length-1]}
-  else if(rightPercents.length===1&&bottomPercents.length>=1){start=rightPercents[0];end=bottomPercents[bottomPercents.length-1]}
-  else if(bottomPercents.length>=2){start=bottomPercents[0];end=bottomPercents[bottomPercents.length-1]}
+  let start=NaN,end=NaN;
+  if(rightPercents.length>=2){start=rightPercents[0];end=rightPercents[rightPercents.length-1]}else if(rightPercents.length===1&&bottomPercents.length>=1){start=rightPercents[0];end=bottomPercents[bottomPercents.length-1]}else if(bottomPercents.length>=2){start=bottomPercents[0];end=bottomPercents[bottomPercents.length-1]}
   if(isFinite(start)&&isFinite(end)&&start>end){const tmp=start;start=end;end=tmp}
   const time=parseTime(playText);const monsterNumber=firstNumber(monsterText);const battleMode=detectBattleMode(battleLabel,monsterText,monsterNumber);const monster=normalizeMonster(monsterNumber,battleMode,time.hours,monsterText);
   const data={level,start,end,hours:time.hours,playtimeText:time.text,monsterNumber,battleMode,monsterPerMinute:monster.perMinute,monsterPerHour:monster.perHour,totalMonsters:monster.total};
-  if(!level)return{ok:false,reason:'找不到等級 Lv.xxx',...data};
-  if(!isFinite(start)||!isFinite(end))return{ok:false,reason:'找不到起始與目前 EXP',...data};
-  if(!isFinite(time.hours)||time.hours<=0)return{ok:false,reason:'找不到上線時間',...data};
-  if(end-start<=0)return{ok:false,reason:'EXP 沒有增加或辨識錯誤',...data};
+  if(!level)return{ok:false,reason:"找不到等級 Lv.xxx",...data};
+  if(!isFinite(start)||!isFinite(end))return{ok:false,reason:"找不到起始與目前 EXP",...data};
+  if(!isFinite(time.hours)||time.hours<=0)return{ok:false,reason:"找不到上線時間",...data};
+  if(end-start<=0)return{ok:false,reason:"EXP 沒有增加或辨識錯誤",...data};
   return{ok:true,...data};
 }
 
 function render(data){
   const gain=data.end-data.start,perHour=gain/data.hours,perMin=perHour/60,perDay=perHour*24,remain=100-data.end,needHours=remain/perHour;
   const d=Math.floor(needHours/24),h=Math.floor(needHours%24);
-  levelUI.innerText=`Lv.${data.level} → Lv.${data.level+1}`;needTimeUI.innerText=`${d}天 ${h}小時`;startExpUI.innerText=fmt(data.start,3)+'%';endExpUI.innerText=fmt(data.end,3)+'%';gainExpUI.innerText=fmt(gain,3)+'%';remainUI.innerText=fmt(remain,3)+'%';
-  perHourUI.innerText=fmt(perHour,3)+'% / 小時';expPerMinUI.innerText=fmt(perMin,4)+'%';expPerHourBoxUI.innerText=fmt(perHour,3)+'%';perDayUI.innerText=fmt(perDay,3)+'%';playtimeUI.innerText=data.playtimeText||'-';
-  monsterMinUI.innerText=isFinite(data.monsterPerMinute)?fmt(data.monsterPerMinute,1)+' 隻':'-';monsterHourUI.innerText=isFinite(data.monsterPerHour)?fmt(data.monsterPerHour,0)+' 隻':'-';
-  bar.style.width=Math.min((data.end/100)*100,100)+'%';
-  const warnings=[];if(data.hours<.5)warnings.push('樣本低於 30 分鐘，建議掛滿 1 小時以上更準。');if(data.battleMode==='fallback')warnings.push('戰鬥狀況文字辨識不完整，怪物數使用數字備援判斷。');warnUI.innerText=warnings.join(' ');
+  levelUI.innerText=`Lv.${data.level} → Lv.${data.level+1}`;needTimeUI.innerText=`${d}天 ${h}小時`;startExpUI.innerText=fmt(data.start,3)+"%";endExpUI.innerText=fmt(data.end,3)+"%";gainExpUI.innerText=fmt(gain,3)+"%";remainUI.innerText=fmt(remain,3)+"%";
+  perHourUI.innerText=fmt(perHour,3)+"% / 小時";expPerMinUI.innerText=fmt(perMin,4)+"%";expPerHourBoxUI.innerText=fmt(perHour,3)+"%";perDayUI.innerText=fmt(perDay,3)+"%";playtimeUI.innerText=data.playtimeText||"-";
+  monsterMinUI.innerText=isFinite(data.monsterPerMinute)?fmt(data.monsterPerMinute,1)+" 隻":"-";monsterHourUI.innerText=isFinite(data.monsterPerHour)?fmt(data.monsterPerHour,0)+" 隻":"-";
+  bar.style.width=Math.min(data.end,100)+"%";
+  const warnings=[];if(data.hours<0.5)warnings.push("樣本低於 30 分鐘，建議掛滿 1 小時以上更準。");if(data.battleMode==="fallback")warnings.push("戰鬥狀況文字辨識不完整，怪物數使用數字備援判斷。");warnUI.innerText=warnings.join(" ");
   progressText.innerText=`目前 ${fmt(data.end,3)}% / 100% ｜ 還差 ${fmt(remain,3)}%`;
-  lastShare=`掛機效率分析\nLv.${data.level} → Lv.${data.level+1}\n目前 EXP：${fmt(data.end,3)}%\nEXP效率：約 ${fmt(perHour,3)}% / 小時\n預估升等：${d}天 ${h}小時\n上線時間：${data.playtimeText}\n怪物：約 ${fmt(data.monsterPerMinute,1)} 隻/分鐘，${fmt(data.monsterPerHour,0)} 隻/小時`;
+  lastShare=`掛機效率分析\nLv.${data.level} → Lv.${data.level+1}\n起始 EXP：${fmt(data.start,3)}%\n目前 EXP：${fmt(data.end,3)}%\n獲得 EXP：${fmt(gain,3)}%\nEXP效率：約 ${fmt(perHour,3)}% / 小時\n預估升等：${d}天 ${h}小時\n上線時間：${data.playtimeText}\n怪物：約 ${fmt(data.monsterPerMinute,1)} 隻/分鐘，${fmt(data.monsterPerHour,0)} 隻/小時`;
 }
 
-function runManual(){
-  const level=num(mLevel.value),start=num(mStart.value),end=num(mEnd.value),hours=parseTimeToHours(mTime.value),monsterNumber=num(mMonster.value),mode=mMonsterMode.value;
-  if(!level||level<=0||level>250){alert('請輸入正確等級');return}if(!isFinite(start)||!isFinite(end)){alert('請輸入起始與目前 EXP');return}if(!isFinite(hours)||hours<=0){alert('請輸入上線時間');return}
-  const monster=normalizeMonster(monsterNumber,mode,hours,String(mMonster.value));render({ok:true,level,start,end,hours,playtimeText:mTime.value,monsterNumber,battleMode:mode,monsterPerMinute:monster.perMinute,monsterPerHour:monster.perHour,totalMonsters:monster.total});setStatus('手動資料已套用',100);
-}
-
+function runManual(){const level=num(mLevel.value),start=num(mStart.value),end=num(mEnd.value),hours=parseTimeToHours(mTime.value),monsterNumber=num(mMonster.value),mode=mMonsterMode.value;if(!level||level<=0||level>250){alert("請輸入正確等級");return}if(!isFinite(start)||!isFinite(end)){alert("請輸入起始與目前 EXP");return}if(!isFinite(hours)||hours<=0){alert("請輸入上線時間");return}const monster=normalizeMonster(monsterNumber,mode,hours,String(mMonster.value));render({ok:true,level,start,end,hours,playtimeText:mTime.value,monsterNumber,battleMode:mode,monsterPerMinute:monster.perMinute,monsterPerHour:monster.perHour,totalMonsters:monster.total});setStatus("手動資料已套用",100)}
 function fillManual(data){if(!data)return;if(data.level)mLevel.value=data.level;if(isFinite(data.start))mStart.value=data.start;if(isFinite(data.end))mEnd.value=data.end;if(data.playtimeText)mTime.value=data.playtimeText;if(isFinite(data.monsterNumber))mMonster.value=data.monsterNumber}
-function detectBattleMode(label,numberText,value){const s=String(label||'').replace(/\s+/g,'').replace(/[Oo]/g,'0');if(s.includes('每分鐘')||s.includes('分鐘'))return'minute';if(s.includes('每小時')||s.includes('小時'))return'hour';if(s.includes('目前狩獵')||s.includes('目前')||s.includes('總'))return'total';const raw=String(numberText||''),hasDecimal=/[\.,]/.test(raw);if(hasDecimal&&isFinite(value)&&value>=1000)return'hour';if(hasDecimal&&isFinite(value)&&value<1000)return'minute';if(isFinite(value)&&value>=1000)return'total';if(isFinite(value)&&value>0)return'minute';return'fallback'}
-function normalizeMonster(value,mode,hours,rawText=''){let total=NaN,perMinute=NaN,perHour=NaN;if(!isFinite(value)||value<=0)return{total,perMinute,perHour};let finalMode=mode;if(finalMode==='auto')finalMode=detectBattleMode('',rawText,value);if(finalMode==='minute'){perMinute=value;perHour=value*60;total=isFinite(hours)?perHour*hours:NaN}if(finalMode==='hour'){perHour=value;perMinute=value/60;total=isFinite(hours)?perHour*hours:NaN}if(finalMode==='total'){total=value;perHour=isFinite(hours)&&hours>0?value/hours:NaN;perMinute=perHour/60}return{total,perMinute,perHour}}
-function cleanText(t){return String(t||'').replace(/[，]/g,'.').replace(/[Oo]/g,'0').replace(/\s+/g,' ').trim()}
-function getLevelCandidatesFromText(t) {
-  const s = String(t || "")
-    .replace(/[Oo]/g, "0")
-    .replace(/[Il|]/g, "1");
-
-  const candidates = [];
-
-  const lvMatches = s.match(/L\s*v?\s*\.?\s*(\d{2,3})/gi) || [];
-  lvMatches.forEach(x => {
-    const m = x.match(/\d{2,3}/);
-    if (m) candidates.push(Number(m[0]));
-  });
-
-  const nums = s.match(/\d{2,3}/g) || [];
-  nums.forEach(x => candidates.push(Number(x)));
-
-  return candidates.filter(n => isFinite(n) && n >= 10 && n <= 250);
-}
-
-function chooseBestLevel(levelTexts) {
-  let all = [];
-  levelTexts.forEach(t => {
-    all = all.concat(getLevelCandidatesFromText(t));
-  });
-
-  all = all.filter(n => n >= 10 && n <= 250);
-
-  if (!all.length) return null;
-
-  const counts = {};
-  all.forEach(n => counts[n] = (counts[n] || 0) + 1);
-
-  return Object.keys(counts)
-    .map(Number)
-    .sort((a,b) => counts[b] - counts[a] || a - b)[0];
-}
-
-function getPercents(t){const matches=String(t||'').match(/\d{1,3}[\.,]\d{1,3}\s*%?/g)||[];const arr=matches.map(x=>Number(x.replace('%','').replace(',','.').trim())).filter(x=>isFinite(x)&&x>=0&&x<=100).map(x=>Number(x.toFixed(3)));return[...new Set(arr)].sort((a,b)=>a-b)}
-function parseTime(t){const m=String(t||'').match(/(\d{1,3})[:：](\d{2})[:：](\d{2})/);if(!m)return{hours:NaN,text:''};const h=Number(m[1]),mi=Number(m[2]),s=Number(m[3]);return{hours:h+mi/60+s/3600,text:`${String(h).padStart(2,'0')}:${String(mi).padStart(2,'0')}:${String(s).padStart(2,'0')}`}}
-function parseTimeToHours(v){v=String(v||'').trim();const hms=v.match(/(\d{1,3})[:：](\d{1,2})[:：](\d{1,2})/);if(hms)return Number(hms[1])+Number(hms[2])/60+Number(hms[3])/3600;const min=v.match(/(\d+(?:\.\d+)?)\s*(分|m|min)/i);if(min)return Number(min[1])/60;const hr=v.match(/(\d+(?:\.\d+)?)\s*(小時|h|hr)/i);if(hr)return Number(hr[1]);return Number(v)}
-function firstNumber(t){const s=String(t||'').replace(/[Oo]/g,'0');const decimal=s.match(/\d{1,7}[\.,]\d+/);if(decimal)return Number(decimal[0].replace(',','.'));const normal=s.match(/\d{1,7}/);if(!normal)return NaN;return Number(normal[0])}
-function num(v){return Number(String(v||'').replace('%','').replace(',','.').replace(/[^\d.]/g,''))}
-function fmt(n,d=3){if(!isFinite(n))return'-';return Number(n).toFixed(d).replace(/\.?0+$/,'')}
-function loadImage(file){return new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(img);img.src=URL.createObjectURL(file)})}
-function setStatus(text,progress){progressText.innerText=text;bar.style.width=Math.max(0,Math.min(progress,100))+'%'}
-function copyResult(){if(!lastShare){alert('尚未有結果');return}navigator.clipboard.writeText(lastShare);alert('已複製結果')}
-function toggleManual(){manualBox.style.display=manualBox.style.display==='block'?'none':'block'}
-function toggleDebug(){debugBox.style.display=debugBox.style.display==='block'?'none':'block'}
+function detectBattleMode(label,numberText,value){const s=String(label||"").replace(/\s+/g,"").replace(/[Oo]/g,"0");if(s.includes("每分鐘")||s.includes("分鐘"))return"minute";if(s.includes("每小時")||s.includes("小時"))return"hour";if(s.includes("目前狩獵")||s.includes("目前")||s.includes("總"))return"total";const raw=String(numberText||""),hasDecimal=/[\.,]/.test(raw);if(hasDecimal&&isFinite(value)&&value>=1000)return"hour";if(hasDecimal&&isFinite(value)&&value<1000)return"minute";if(isFinite(value)&&value>=1000)return"total";if(isFinite(value)&&value>0)return"minute";return"fallback"}
+function normalizeMonster(value,mode,hours,rawText=""){let total=NaN,perMinute=NaN,perHour=NaN;if(!isFinite(value)||value<=0)return{total,perMinute,perHour};let finalMode=mode;if(finalMode==="auto")finalMode=detectBattleMode("",rawText,value);if(finalMode==="minute"){perMinute=value;perHour=value*60;total=isFinite(hours)?perHour*hours:NaN}if(finalMode==="hour"){perHour=value;perMinute=value/60;total=isFinite(hours)?perHour*hours:NaN}if(finalMode==="total"){total=value;perHour=isFinite(hours)&&hours>0?value/hours:NaN;perMinute=perHour/60}return{total,perMinute,perHour}}
+function cleanText(t){return String(t||"").replace(/[，]/g,".").replace(/[Oo]/g,"0").replace(/\s+/g," ").trim()}
+function getLevelCandidatesFromText(t){const s=String(t||"").replace(/[Oo]/g,"0").replace(/[Il|]/g,"1");const candidates=[];const lvMatches=s.match(/L\s*v?\s*\.?\s*(\d{2,3})/gi)||[];lvMatches.forEach(x=>{const m=x.match(/\d{2,3}/);if(m)candidates.push(Number(m[0]))});const nums=s.match(/\d{2,3}/g)||[];nums.forEach(x=>candidates.push(Number(x)));return candidates.filter(n=>isFinite(n)&&n>=10&&n<=250)}
+function chooseBestLevel(levelTexts){let all=[];levelTexts.forEach(t=>{all=all.concat(getLevelCandidatesFromText(t))});all=all.filter(n=>n>=10&&n<=250);if(!all.length)return null;const counts={};all.forEach(n=>{counts[n]=(counts[n]||0)+1});return Object.keys(counts).map(Number).sort((a,b)=>counts[b]-counts[a]||a-b)[0]}
+function getPercents(t){const matches=String(t||"").match(/\d{1,3}[\.,]\d{1,3}\s*%?/g)||[];const arr=matches.map(x=>Number(x.replace("%","").replace(",",".").trim())).filter(x=>isFinite(x)&&x>=0&&x<=100).map(x=>Number(x.toFixed(3)));return[...new Set(arr)].sort((a,b)=>a-b)}
+function parseTime(t){const m=String(t||"").match(/(\d{1,3})[:：](\d{2})[:：](\d{2})/);if(!m)return{hours:NaN,text:""};const h=Number(m[1]),mi=Number(m[2]),s=Number(m[3]);return{hours:h+mi/60+s/3600,text:`${String(h).padStart(2,"0")}:${String(mi).padStart(2,"0")}:${String(s).padStart(2,"0")}`}}
+function parseTimeToHours(v){v=String(v||"").trim();const hms=v.match(/(\d{1,3})[:：](\d{1,2})[:：](\d{1,2})/);if(hms)return Number(hms[1])+Number(hms[2])/60+Number(hms[3])/3600;const min=v.match(/(\d+(?:\.\d+)?)\s*(分|m|min)/i);if(min)return Number(min[1])/60;const hr=v.match(/(\d+(?:\.\d+)?)\s*(小時|h|hr)/i);if(hr)return Number(hr[1]);return Number(v)}
+function firstNumber(t){const s=String(t||"").replace(/[Oo]/g,"0");const decimal=s.match(/\d{1,7}[\.,]\d+/);if(decimal)return Number(decimal[0].replace(",","."));const normal=s.match(/\d{1,7}/);if(!normal)return NaN;return Number(normal[0])}
+function num(v){const cleaned=String(v||"").replace("%","").replace(",",".").replace(/[^\d.]/g,"");if(!cleaned)return NaN;return Number(cleaned)}
+function fmt(n,d=3){if(!isFinite(n))return"-";return Number(n).toFixed(d).replace(/\.?0+$/,'')}
+function loadImage(file){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=URL.createObjectURL(file)})}
+function setStatus(text,progress){progressText.innerText=text;bar.style.width=Math.max(0,Math.min(progress,100))+"%"}
+function copyResult(){if(!lastShare){alert("尚未有結果");return}navigator.clipboard.writeText(lastShare);alert("已複製結果")}
+function toggleManual(){manualBox.style.display=manualBox.style.display==="block"?"none":"block"}
+function toggleDebug(){debugBox.style.display=debugBox.style.display==="block"?"none":"block"}
 </script>
 </body>
-</html>function makeZones(img) {
-  const list = [];
-
-  function add(key, name, x, y, w, h, scale, extra = {}) {
-    list.push({
-      key,
-      name,
-      canvas: crop(img, x, y, w, h, scale, extra.mode || "threshold"),
-      ...extra
-    });
-  }
-
-  // 固定 UI 區塊，不跑全圖，不抓道具列表。
-  // 以你提供的 1280x720 截圖校正座標。
-
-  add("battleLabel", "戰鬥狀況文字", 0.605, 0.240, 0.300, 0.065, 8, {
-    lang: "chi_tra+eng",
-    noWhitelist: true,
-    mode: "normal"
-  });
-
-  add("monsterValue", "怪物數值", 0.895, 0.245, 0.090, 0.070, 12, {
-    whitelist: "0123456789.,"
-  });
-
-  add("playtime", "上線時間", 0.595, 0.325, 0.180, 0.085, 10, {
-    whitelist: "0123456789:"
-  });
-
-  add("rightLevelExp", "右側等級EXP", 0.785, 0.315, 0.205, 0.110, 12, {
-    whitelist: "0123456789.,:%LvV()"
-  });
-
-  add("bottomExp", "底部EXP", 0.000, 0.935, 0.360, 0.055, 10, {
-    whitelist: "0123456789.,:%EXP"
-  });
-
-  // 等級專用：右側白字 Lv、右側綠字 Lv、底部 Lv
-  add("levelRightLeft", "右側白字Lv", 0.835, 0.325, 0.085, 0.060, 20, {
-    mode: "normal",
-    whitelist: "0123456789LvV."
-  });
-
-  add("levelRightGreen", "右側綠字Lv", 0.910, 0.325, 0.085, 0.060, 20, {
-    mode: "normal",
-    whitelist: "0123456789LvV."
-  });
-
-  add("levelRightGreenBW", "右側綠字Lv黑白", 0.910, 0.325, 0.085, 0.060, 22, {
-    mode: "threshold",
-    whitelist: "0123456789LvV."
-  });
-
-  add("levelBottom", "底部Lv", 0.420, 0.770, 0.085, 0.060, 20, {
-    mode: "normal",
-    whitelist: "0123456789LvV."
-  });
-
-  add("levelBottomBW", "底部Lv黑白", 0.420, 0.770, 0.085, 0.060, 22, {
-    mode: "threshold",
-    whitelist: "0123456789LvV."
-  });
-
-  return list;
-}
-
-function crop(img, x, y, w, h, scale, mode = "threshold") {
-  const canvas = document.createElement("canvas");
-  const sx = img.width * x;
-  const sy = img.height * y;
-  const sw = img.width * w;
-  const sh = img.height * h;
-
-  canvas.width = Math.max(1, Math.round(sw * scale));
-  canvas.height = Math.max(1, Math.round(sh * scale));
-
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-
-  if (mode === "normal") return canvas;
-
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const d = imageData.data;
-
-  for (let i = 0; i < d.length; i += 4) {
-    const gray = d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114;
-    const v = gray > 125 ? 255 : 0;
-    d[i] = v;
-    d[i+1] = v;
-    d[i+2] = v;
-  }
-
-  ctx.putImageData(imageData, 0, 0);
-  return canvas;
-}
+</html>
