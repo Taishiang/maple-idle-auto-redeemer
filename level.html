@@ -58,20 +58,58 @@ function toggleDebug(){const b=document.getElementById('debug');b.style.display=
 function toggleManual(){const b=document.getElementById('manual');b.style.display=b.style.display==='block'?'none':'block'}
 async function analyzeImage(){
  if(!uploadedFile){alert('請先上傳圖片');return}
- const status=document.getElementById('status'); status.innerText='辨識中，第一次可能需要 10~30 秒...';
+ const status=document.getElementById('status');
+ status.innerText='辨識固定 UI 區塊中...';
+
  try{
-  const canvases=await makeOCRCanvases(uploadedFile); let allText='';
-  for(let i=0;i<canvases.length;i++){
-    status.innerText=`辨識區塊 ${i+1}/${canvases.length}...`;
-    const result=await Tesseract.recognize(canvases[i],'eng',{tessedit_char_whitelist:'0123456789.,:%LvVPLAYTIMEEXPmonsterMONSTER () ',logger:m=>{if(m.status==='recognizing text')status.innerText=`辨識區塊 ${i+1}/${canvases.length}：${Math.round(m.progress*100)}%`}});
-    allText += '\n' + result.data.text;
+  const zones=await makeOCRCanvases(uploadedFile);
+  const texts={};
+  let debugText='';
+
+  for(let i=0;i<zones.length;i++){
+    const z=zones[i];
+    status.innerText=`辨識 ${z.name} ${i+1}/${zones.length}...`;
+
+    const result=await Tesseract.recognize(
+      z.canvas,
+      'eng',
+      {
+        tessedit_char_whitelist:'0123456789.,:%LvVPLAYTIMEEXP() ',
+        logger:m=>{
+          if(m.status==='recognizing text'){
+            status.innerText=`辨識 ${z.name}：${Math.round(m.progress*100)}%`;
+          }
+        }
+      }
+    );
+
+    texts[z.key]=result.data.text;
+    debugText += `\n\n[${z.name}]\n${result.data.text}`;
   }
-  lastText=allText; document.getElementById('debug').innerText=allText;
-  const data=parseMapleText(allText);
-  if(!data.ok){status.innerText='辨識不完整，請用手動修正';document.getElementById('main').innerText='需要修正';document.getElementById('detail').innerHTML=data.reason;document.getElementById('manual').style.display='block';fillManual(data);return}
-  showResult(data,'OCR');
- }catch(err){console.error(err);status.innerText='分析失敗，請重新上傳較清楚的圖片';document.getElementById('main').innerText='分析失敗';document.getElementById('manual').style.display='block'}
+
+  lastText=debugText;
+  document.getElementById('debug').innerText=debugText;
+
+  const data=parseFixedZones(texts);
+
+  if(!data.ok){
+    status.innerText='辨識不完整，請用手動修正';
+    document.getElementById('main').innerText='需要修正';
+    document.getElementById('detail').innerHTML=data.reason;
+    document.getElementById('manual').style.display='block';
+    fillManual(data);
+    return;
+  }
+
+  showResult(data,'OCR固定UI');
+ }catch(err){
+  console.error(err);
+  status.innerText='分析失敗，請重新上傳較清楚的圖片';
+  document.getElementById('main').innerText='分析失敗';
+  document.getElementById('manual').style.display='block';
+ }
 }
+
 function fillManual(data){ if(!data)return; if(data.level) mLevel.value=data.level; if(data.current) mCurrent.value=data.current; if(data.before) mBefore.value=data.before; if(data.playtimeText) mTime.value=data.playtimeText; if(data.monsters) mMonsters.value=data.monsters; }
 function analyzeManual(){
  const mode=mMode.value; const level=num(mLevel.value); const current=num(mCurrent.value); const before=num(mBefore.value); const monsters=num(mMonsters.value)||0; const hours=parseTimeToHours(mTime.value);
@@ -101,28 +139,33 @@ function showResult(data,source){
 }
 function loadImage(file){return new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(img);img.src=URL.createObjectURL(file)})}
 async function makeOCRCanvases(file){
- const img=await loadImage(file); const list=[];
+ const img=await loadImage(file);
+ const list=[];
 
- // 1. 右側黑框「Lv.106 >> Lv.106」區塊：最優先抓目前等級
- list.push(makeCanvas(img,img.width*0.80,img.height*0.30,img.width*0.18,img.height*0.10,8));
+ function add(key,name,x,y,w,h,scale){
+   list.push({
+     key,
+     name,
+     canvas:makeCanvas(img,img.width*x,img.height*y,img.width*w,img.height*h,scale)
+   });
+ }
 
- // 2. 下方角色資訊「Lv.106」區塊：備援抓目前等級
- list.push(makeCanvas(img,img.width*0.39,img.height*0.75,img.width*0.20,img.height*0.09,8));
+ // UI 固定座標：只抓需要的區塊，不再搜尋獲得道具列表
+ // 右側自動狩獵概況上方數字：每分鐘怪物 / 或目前怪物總數
+ add('monsterRate','怪物數/每分鐘數',0.86,0.245,0.11,0.055,10);
 
- // 3. 右側完整「自動狩獵概況」黑框：包含 PLAYTIME、Lv、EXP、怪物數
- list.push(makeCanvas(img,img.width*0.58,img.height*0.15,img.width*0.40,img.height*0.35,5));
+ // PLAYTIME
+ add('playtime','上線時間',0.60,0.335,0.16,0.075,9);
 
- // 4. 右側 Lv + EXP 區塊：專門補抓等級與百分比
- list.push(makeCanvas(img,img.width*0.72,img.height*0.22,img.width*0.27,img.height*0.14,7));
+ // 右側等級 + EXP，包含 Lv.106、34.645%、34.862%
+ add('levelExp','右側等級EXP',0.81,0.325,0.17,0.085,10);
 
- // 5. 右側 PLAYTIME + 怪物數區塊
- list.push(makeCanvas(img,img.width*0.58,img.height*0.18,img.width*0.40,img.height*0.16,6));
+ // 底部角色等級，備援用
+ add('bottomLevel','底部角色等級',0.405,0.760,0.12,0.055,10);
 
- // 6. 底部目前 EXP 條：補抓目前 EXP
- list.push(makeCanvas(img,img.width*0.00,img.height*0.90,img.width*0.36,img.height*0.10,6));
+ // 底部目前 EXP，備援用
+ add('bottomExp','底部目前EXP',0.02,0.925,0.33,0.055,9);
 
- // 7. 最後才跑全圖，當作備援
- list.push(makeCanvas(img,0,0,img.width,img.height,2));
  return list;
 }
 function makeCanvas(img,x,y,w,h,scale){
@@ -132,6 +175,164 @@ function makeCanvas(img,x,y,w,h,scale){
  for(let i=0;i<d.length;i+=4){const gray=d[i]*.299+d[i+1]*.587+d[i+2]*.114; const high=gray>125?255:0; d[i]=d[i+1]=d[i+2]=high}
  ctx.putImageData(imageData,0,0); return canvas;
 }
+
+function parseFixedZones(texts){
+ const levelExpText = cleanOCR(texts.levelExp || '');
+ const bottomLevelText = cleanOCR(texts.bottomLevel || '');
+ const bottomExpText = cleanOCR(texts.bottomExp || '');
+ const monsterText = cleanOCR(texts.monsterRate || '');
+ const timeText = cleanOCR(texts.playtime || '');
+
+ // 等級：優先抓右側 Lv，抓不到再抓底部 Lv
+ let level =
+   getLevelFromText(levelExpText) ||
+   getLevelFromText(bottomLevelText);
+
+ // 有些 OCR 只會讀到 106，沒有 Lv；因為這些區塊是固定等級區，所以可接受 2~3 位數
+ if(!level){
+   level = firstReasonableLevel(levelExpText) || firstReasonableLevel(bottomLevelText);
+ }
+
+ // EXP：右側通常有兩個百分比：上線前與目前
+ let expList = getPercents(levelExpText);
+
+ // 底部目前 EXP 備援
+ const bottomPercents = getPercents(bottomExpText);
+ if(bottomPercents.length){
+   const bottomCurrent = bottomPercents[bottomPercents.length-1];
+   if(!expList.some(x=>Math.abs(x-bottomCurrent)<0.02)){
+     expList.push(bottomCurrent);
+   }
+ }
+
+ expList = expList
+   .filter(x=>isFinite(x)&&x>=0&&x<=100)
+   .sort((a,b)=>a-b);
+
+ let before = null;
+ let current = null;
+
+ if(expList.length >= 2){
+   before = expList[0];
+   current = expList[expList.length-1];
+ }else if(expList.length === 1){
+   current = expList[0];
+ }
+
+ // 上線時間
+ const parsedTime = parsePlayTime(timeText);
+ const hours = parsedTime.hours;
+ const playtimeText = parsedTime.text;
+
+ // 怪物數/每分鐘數：這個固定區塊只會有上方那個數字，不碰道具列表
+ const monsterNumber = firstNumber(monsterText);
+ let monsters = 0;
+ let monsterPerMinuteFromOCR = null;
+
+ if(isFinite(monsterNumber)){
+   // 小數幾乎就是「每分鐘狩獵怪物數量」，例如 106.6
+   if(String(monsterNumber).includes('.') || monsterNumber < 1000){
+     monsterPerMinuteFromOCR = Number(monsterNumber);
+     if(hours) monsters = monsterPerMinuteFromOCR * hours * 60;
+   }else{
+     monsters = Number(monsterNumber);
+   }
+ }
+
+ if(!isFinite(current) || !isFinite(before)){
+   return {
+     ok:false,
+     reason:'固定區塊找不到兩個 EXP 百分比',
+     level,
+     current,
+     before,
+     hours,
+     monsters,
+     monsterPerMinuteFromOCR,
+     playtimeText
+   };
+ }
+
+ if(!isFinite(hours) || hours <= 0){
+   return {
+     ok:false,
+     reason:'固定區塊找不到 PLAYTIME / 上線時間',
+     level,
+     current,
+     before,
+     hours,
+     monsters,
+     monsterPerMinuteFromOCR,
+     playtimeText
+   };
+ }
+
+ return {
+   ok:true,
+   level,
+   nextLevel:level ? level + 1 : null,
+   current,
+   before,
+   after:current,
+   hours,
+   monsters,
+   monsterPerMinuteFromOCR,
+   playtimeText
+ };
+}
+
+function cleanOCR(t){
+ return String(t||'')
+   .replace(/[，]/g,'.')
+   .replace(/[Oo]/g,'0')
+   .replace(/\s+/g,' ')
+   .trim();
+}
+
+function getLevelFromText(t){
+ const m = String(t).match(/L\s*v?\s*\.?\s*(\d{1,3})/i);
+ if(!m) return null;
+ const n = Number(m[1]);
+ return n>=1 && n<=250 ? n : null;
+}
+
+function firstReasonableLevel(t){
+ const nums = String(t).match(/\b\d{2,3}\b/g) || [];
+ for(const x of nums){
+   const n = Number(x);
+   if(n>=1 && n<=250 && ![12,13,14,15,16,20,28,49,65,80].includes(n)){
+     return n;
+   }
+ }
+ return null;
+}
+
+function getPercents(t){
+ const arr = [];
+ const matches = String(t).match(/\d{1,3}[\.,]\d{1,3}\s*%?/g) || [];
+ matches.forEach(x=>{
+   const n = Number(x.replace('%','').replace(',','.').trim());
+   if(isFinite(n) && n>=0 && n<=100) arr.push(n);
+ });
+ return [...new Set(arr.map(x=>Number(x.toFixed(3))))];
+}
+
+function parsePlayTime(t){
+ const m = String(t).match(/(\d{1,3})[:：](\d{2})[:：](\d{2})/);
+ if(!m) return {hours:null,text:''};
+ const h=Number(m[1]), mi=Number(m[2]), s=Number(m[3]);
+ return {
+   hours:h+mi/60+s/3600,
+   text:`${String(h).padStart(2,'0')}:${String(mi).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+ };
+}
+
+function firstNumber(t){
+ const m = String(t).match(/\d{1,7}(?:[\.,]\d+)?/);
+ if(!m) return NaN;
+ return Number(m[0].replace(',','.'));
+}
+
 function parseMapleText(text){
  const cleaned=text.replace(/[，]/g,'.').replace(/O/g,'0').replace(/o/g,'0').replace(/\s+/g,' ');
  let levels=[], lvPercents=[];
@@ -154,29 +355,47 @@ function parseMapleText(text){
  let monsters=0;
  let monsterPerMinuteFromOCR=null;
 
- // 優先判斷「每分鐘」模式，避免把 106.6 當成總怪物數再除以上線時間
- const perMinPattern = cleaned.match(/(?:每分鐘|per\s*min|minute)[^0-9]{0,40}(\d{1,5}(?:[\.,]\d+)?)/i);
- if(perMinPattern){
-   monsterPerMinuteFromOCR = Number(perMinPattern[1].replace(',','.'));
+ // 注意：OCR 白名單沒有中文，所以「每分鐘」常常辨識不到，只會看到 106.6
+ // 因此先找「不是 EXP 的小數」，例如 106.6，當作每分鐘怪物數
+ const decimalNumbers = (cleaned.match(/\b\d{1,4}[\.,]\d{1,3}\b/g)||[])
+   .map(x=>Number(x.replace(',','.')))
+   .filter(x=>isFinite(x));
+
+ // 排除 EXP 百分比，例如 34.645 / 34.862
+ const expDecimals = [];
+ if(isFinite(before)) expDecimals.push(before);
+ if(isFinite(current)) expDecimals.push(current);
+ lvPercents.forEach(x=>expDecimals.push(x));
+
+ const monsterRateCandidates = decimalNumbers.filter(x=>{
+   const isExp = expDecimals.some(e=>Math.abs(e-x)<0.02);
+   return !isExp && x > 0 && x < 1000;
+ });
+
+ // 若有 106.6 這種小數，直接視為每分鐘怪物數
+ if(monsterRateCandidates.length){
+   // 通常第一個就是右側黑框上面的「每分鐘狩獵怪物數量」
+   monsterPerMinuteFromOCR = monsterRateCandidates[0];
  }
 
- // 總怪物數模式
- const totalMonsterPattern = cleaned.match(/(?:目前|總|total|hunted|狩獵)[^0-9]{0,40}(\d{3,9}(?:,\d{3})*)/i);
- if(totalMonsterPattern){
-   monsters = Number(totalMonsterPattern[1].replace(/,/g,''));
+ // 總怪物數模式：只有沒有每分鐘數值時才抓總數
+ if(!monsterPerMinuteFromOCR){
+   const totalMonsterPattern = cleaned.match(/(?:total|hunted|monster|MONSTER)[^0-9]{0,40}(\d{3,9}(?:,\d{3})*)/i);
+   if(totalMonsterPattern){
+     monsters = Number(totalMonsterPattern[1].replace(/,/g,''));
+   }
+
+   if(!monsters){
+     const nums=(cleaned.match(/\b\d{4,7}\b/g)||[])
+       .map(x=>Number(x.replace(/,/g,'')))
+       .filter(x=>x>=1000&&x<9999999);
+     monsters=nums.length?nums[0]:0;
+   }
  }
 
- // 如果沒抓到總數，但有每分鐘，就反推總怪物數，讓歷史與顯示仍可用
- if(!monsters && monsterPerMinuteFromOCR && hours){
+ // 如果是每分鐘模式，反推總怪物數，避免後面歷史紀錄沒值
+ if(monsterPerMinuteFromOCR && hours){
    monsters = monsterPerMinuteFromOCR * hours * 60;
- }
-
- // 最後備援：只抓 1000 以上，避免把 106.6 這種每分鐘數字當總數
- if(!monsters){
-   const nums=(cleaned.match(/\b\d{4,7}\b/g)||[])
-     .map(x=>Number(x.replace(/,/g,'')))
-     .filter(x=>x>=1000&&x<9999999);
-   monsters=nums.length?nums[0]:0;
  }
  // 等級：只認紅框區常見的 Lv.xxx，不用最大值，避免抓到 Stage / 物品數量 / 319
  let levelCandidates = [];
