@@ -6,38 +6,29 @@
 <title>掛機效率分析器</title>
 
 <style>
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,"Noto Sans TC",sans-serif;
-  background:#f5f7fb;
-  color:#111827;
-}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial;background:#f5f7fb;color:#111827}
 .container{max-width:480px;margin:auto;padding:20px}
-.homeBtn{display:inline-block;margin-bottom:14px;padding:10px 14px;background:#4f7cff;color:white;text-decoration:none;border-radius:10px;font-weight:700}
+.homeBtn{display:inline-block;margin-bottom:14px;padding:10px 14px;background:#4f7cff;color:#fff;text-decoration:none;border-radius:10px;font-weight:700}
 h2{text-align:center;margin:8px 0 18px}
 .card{background:#fff;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 4px 14px rgba(0,0,0,.06)}
-.upload{text-align:center;padding:18px;border:2px dashed #d1d5db;border-radius:12px;cursor:pointer;color:#374151;font-weight:700}
+.upload{text-align:center;padding:18px;border:2px dashed #d1d5db;border-radius:12px;cursor:pointer;font-weight:700}
 #preview{display:none;width:100%;margin-top:12px;border-radius:10px}
 .progress{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden}
-.bar{height:100%;width:0%;background:linear-gradient(90deg,#4f7cff,#34c759);transition:.4s ease}
-.progress-text{font-size:12px;color:#666;text-align:right;margin-top:6px;line-height:1.5}
+.bar{height:100%;width:0%;background:linear-gradient(90deg,#4f7cff,#34c759);transition:.4s}
+.progress-text{font-size:12px;color:#666;text-align:right;margin-top:6px}
 .main{font-size:28px;font-weight:800;color:#4f7cff;text-align:center;margin:10px 0}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .box{background:#f9fafb;padding:10px;border-radius:10px;text-align:center}
 .title{font-size:12px;color:#666}
-.value{font-size:16px;font-weight:700;word-break:break-word}
-button{width:100%;border:none;border-radius:12px;padding:13px;font-size:16px;font-weight:800;color:white;background:#4f7cff;cursor:pointer}
+.value{font-size:16px;font-weight:700}
+button{width:100%;border:none;border-radius:12px;padding:13px;font-size:16px;font-weight:800;color:#fff;background:#4f7cff;cursor:pointer}
 .secondary{background:#6b7280;margin-top:10px}
-.manual{display:none}
-.manual label{display:block;margin-top:10px;font-size:12px;color:#666}
-.manual input,.manual select{width:100%;box-sizing:border-box;margin-top:6px;padding:11px;border-radius:10px;border:1px solid #d1d5db;font-size:15px}
-.debug{display:none;white-space:pre-wrap;font-size:12px;line-height:1.5;color:#6b7280;background:#f3f4f6;border-radius:10px;padding:10px}
-.warn{color:#d97706;font-size:12px;line-height:1.5;margin-top:8px}
-@media(max-width:480px){.container{padding:14px}.main{font-size:24px}}
+.debug{display:none;white-space:pre-wrap;font-size:12px;background:#f3f4f6;border-radius:10px;padding:10px}
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
 <a href="index.html" class="homeBtn">← 回首頁</a>
@@ -45,77 +36,47 @@ button{width:100%;border:none;border-radius:12px;padding:13px;font-size:16px;fon
 <h2>掛機效率分析器</h2>
 
 <div class="card upload" onclick="upload.click()">
-  📷 上傳 / 貼上截圖 AI 分析
-  <input type="file" id="upload" accept="image/*" hidden>
-  <img id="preview">
+📷 上傳 / 貼上截圖 AI 分析
+<input type="file" id="upload" accept="image/*" hidden>
+<img id="preview">
 </div>
 
 <div class="card">
-  <div class="progress">
-    <div class="bar" id="bar"></div>
-  </div>
-  <div class="progress-text" id="progressText">等待圖片...</div>
+<div class="progress">
+<div class="bar" id="bar"></div>
+</div>
+<div class="progress-text" id="progressText">等待圖片...</div>
 </div>
 
 <div class="card">
-  <div class="grid">
-    <div class="box"><div class="title">等級</div><div class="value" id="levelUI">-</div></div>
-    <div class="box"><div class="title">升等時間</div><div class="value" id="needTimeUI">-</div></div>
-    <div class="box"><div class="title">起始 EXP</div><div class="value" id="startExpUI">-</div></div>
-    <div class="box"><div class="title">目前 EXP</div><div class="value" id="endExpUI">-</div></div>
-    <div class="box"><div class="title">獲得 EXP</div><div class="value" id="gainExpUI">-</div></div>
-    <div class="box"><div class="title">剩餘 EXP</div><div class="value" id="remainUI">-</div></div>
-  </div>
+<div class="grid">
+<div class="box"><div class="title">等級</div><div class="value" id="levelUI">-</div></div>
+<div class="box"><div class="title">升等時間</div><div class="value" id="needTimeUI">-</div></div>
+<div class="box"><div class="title">起始 EXP</div><div class="value" id="startExpUI">-</div></div>
+<div class="box"><div class="title">目前 EXP</div><div class="value" id="endExpUI">-</div></div>
+<div class="box"><div class="title">獲得 EXP</div><div class="value" id="gainExpUI">-</div></div>
+<div class="box"><div class="title">剩餘 EXP</div><div class="value" id="remainUI">-</div></div>
+</div>
 </div>
 
 <div class="card">
-  <div class="main" id="perHourUI">-</div>
 
-  <div class="grid">
-    <div class="box"><div class="title">EXP 每分鐘</div><div class="value" id="expPerMinUI">-</div></div>
-    <div class="box"><div class="title">EXP 每小時</div><div class="value" id="expPerHourBoxUI">-</div></div>
-    <div class="box"><div class="title">EXP 每天 24H</div><div class="value" id="perDayUI">-</div></div>
-    <div class="box"><div class="title">上線時間</div><div class="value" id="playtimeUI">-</div></div>
-    <div class="box"><div class="title">怪物每分鐘</div><div class="value" id="monsterMinUI">-</div></div>
-    <div class="box"><div class="title">怪物每小時</div><div class="value" id="monsterHourUI">-</div></div>
-  </div>
+<div class="main" id="perHourUI">-</div>
 
-  <div class="warn" id="warnUI"></div>
+<div class="grid">
+<div class="box"><div class="title">EXP 每分鐘</div><div class="value" id="expPerMinUI">-</div></div>
+<div class="box"><div class="title">EXP 每小時</div><div class="value" id="expPerHourBoxUI">-</div></div>
+<div class="box"><div class="title">EXP 每天 24H</div><div class="value" id="perDayUI">-</div></div>
+<div class="box"><div class="title">上線時間</div><div class="value" id="playtimeUI">-</div></div>
+<div class="box"><div class="title">怪物每分鐘</div><div class="value" id="monsterMinUI">-</div></div>
+<div class="box"><div class="title">怪物每小時</div><div class="value" id="monsterHourUI">-</div></div>
 </div>
 
-<div class="card manual" id="manualBox">
-  <b>手動修正</b>
-
-  <label>目前等級</label>
-  <input id="mLevel" placeholder="例如 106">
-
-  <label>起始 EXP %</label>
-  <input id="mStart" placeholder="例如 40.636">
-
-  <label>目前 EXP %</label>
-  <input id="mEnd" placeholder="例如 41.226">
-
-  <label>上線時間</label>
-  <input id="mTime" placeholder="例如 00:27:26">
-
-  <label>怪物數值</label>
-  <input id="mMonster" placeholder="例如 108.3 / 6391.4 / 11571">
-
-  <label>怪物數值類型</label>
-  <select id="mMonsterMode">
-    <option value="auto">自動判斷</option>
-    <option value="minute">每分鐘</option>
-    <option value="hour">每小時</option>
-    <option value="total">總怪物數</option>
-  </select>
-
-  <button onclick="runManual()">套用手動資料</button>
 </div>
 
 <div class="card">
-  <button onclick="copyResult()">一鍵複製結果</button>
-  <button class="secondary" onclick="toggleManual()">手動修正</button>
-  <button class="secondary" onclick="toggleDebug()">查看 AI 回傳資料</button>
+<button onclick="copyResult()">一鍵複製結果</button>
+<button class="secondary" onclick="toggleDebug()">查看 AI 回傳資料</button>
 </div>
 
 <div class="card debug" id="debugBox"></div>
@@ -123,90 +84,232 @@ button{width:100%;border:none;border-radius:12px;padding:13px;font-size:16px;fon
 </div>
 
 <script>
-upload.addEventListener('change', async (e) => {
+
+let lastShare = "";
+
+upload.addEventListener("change", async e => {
   const file = e.target.files[0];
-  if (!file) return;
-
-  preview.src = URL.createObjectURL(file);
-  preview.style.display = 'block';
-
-  setStatus('AI 分析中...', 30);
-
-  const reader = new FileReader();
-
-  reader.onload = async () => {
-    try {
-
-      const response = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          image: reader.result
-        })
-      });
-
-      const data = await response.json();
-
-      console.log(data);
-
-      if (data.error) {
-        setStatus('AI 分析失敗，請用手動修正', 100);
-        return;
-      }
-
-      renderAI(data);
-
-      setStatus('AI 分析完成', 100);
-
-    } catch (err) {
-
-      console.error(err);
-
-      setStatus('AI 分析失敗，請用手動修正', 100);
-
-    }
-  };
-
-  reader.readAsDataURL(file);
+  if(file) run(file);
 });
 
-function renderAI(data) {
+document.addEventListener("paste", e => {
+  for(const item of e.clipboardData.items){
+    if(item.type.includes("image")){
+      run(item.getAsFile());
+      break;
+    }
+  }
+});
 
-  levelUI.innerText = data.level || '-';
+async function run(file){
 
-  startExpUI.innerText = data.startExp || '-';
+  preview.src = URL.createObjectURL(file);
+  preview.style.display = "block";
 
-  endExpUI.innerText = data.endExp || '-';
+  setStatus("AI 分析中...",30);
 
-  gainExpUI.innerText = data.gainExp || '-';
+  try{
 
-  remainUI.innerText = data.remainExp || '-';
+    const image = await fileToBase64(file);
 
-  needTimeUI.innerText = data.needTime || '-';
+    const response = await fetch("/api/analyze",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({image})
+    });
 
-  expPerMinUI.innerText = data.expPerMinute || '-';
+    const data = await response.json();
 
-  expPerHourBoxUI.innerText = data.expPerHour || '-';
+    debugBox.innerText =
+      JSON.stringify(data,null,2);
 
-  perDayUI.innerText = data.expPerDay || '-';
+    if(!response.ok || data.error){
 
-  playtimeUI.innerText = data.playTime || '-';
+      setStatus("AI 分析失敗",100);
 
-  monsterMinUI.innerText = data.monsterPerMinute || '-';
+      return;
+    }
 
-  monsterHourUI.innerText = data.monsterPerHour || '-';
+    render(data);
 
-  perHourUI.innerText = data.expPerHour || '-';
+    setStatus("AI 分析完成",100);
+
+  }catch(err){
+
+    console.error(err);
+
+    debugBox.innerText = String(err);
+
+    setStatus("AI 分析失敗",100);
+  }
 }
 
-function setStatus(text, progress) {
+function fileToBase64(file){
+
+  return new Promise((resolve,reject)=>{
+
+    const reader = new FileReader();
+
+    reader.onload = ()=>resolve(reader.result);
+
+    reader.onerror = reject;
+
+    reader.readAsDataURL(file);
+
+  });
+}
+
+function render(data){
+
+  const level = Number(data.level);
+  const start = Number(data.startExp);
+  const end = Number(data.endExp);
+  const hours = parseTimeToHours(data.playTime);
+  const monster = Number(data.monsterValue);
+
+  const gain = end - start;
+  const perHour = gain / hours;
+  const perMin = perHour / 60;
+  const perDay = perHour * 24;
+  const remain = 100 - end;
+  const needHours = remain / perHour;
+
+  const d = Math.floor(needHours / 24);
+  const h = Math.floor(needHours % 24);
+
+  let monsterPerMinute = "-";
+  let monsterPerHour = "-";
+
+  if(data.monsterMode === "minute"){
+
+    monsterPerMinute = fmt(monster,1);
+    monsterPerHour = fmt(monster * 60,0);
+
+  }else if(data.monsterMode === "hour"){
+
+    monsterPerMinute = fmt(monster / 60,1);
+    monsterPerHour = fmt(monster,0);
+
+  }else if(data.monsterMode === "total"){
+
+    const perHourMonster = monster / hours;
+
+    monsterPerMinute = fmt(perHourMonster / 60,1);
+    monsterPerHour = fmt(perHourMonster,0);
+  }
+
+  levelUI.innerText =
+    Lv.${level} → Lv.${level+1};
+
+  needTimeUI.innerText =
+    ${d}天 ${h}小時;
+
+  startExpUI.innerText =
+    fmt(start,3)+"%";
+
+  endExpUI.innerText =
+    fmt(end,3)+"%";
+
+  gainExpUI.innerText =
+    fmt(gain,3)+"%";
+
+  remainUI.innerText =
+    fmt(remain,3)+"%";
+
+  perHourUI.innerText =
+    fmt(perHour,3)+"% / 小時";
+
+  expPerMinUI.innerText =
+    fmt(perMin,4)+"%";
+
+  expPerHourBoxUI.innerText =
+    fmt(perHour,3)+"%";
+
+  perDayUI.innerText =
+    fmt(perDay,3)+"%";
+
+  playtimeUI.innerText =
+    data.playTime || "-";
+
+  monsterMinUI.innerText =
+    monsterPerMinute === "-"
+      ? "-"
+      : monsterPerMinute + " 隻";
+
+  monsterHourUI.innerText =
+    monsterPerHour === "-"
+      ? "-"
+      : monsterPerHour + " 隻";
+
+  bar.style.width =
+    Math.min(end,100)+"%";
+
+  progressText.innerText =
+    目前 ${fmt(end,3)}% / 100% ｜ 還差 ${fmt(remain,3)}%;
+
+  lastShare =
+掛機效率分析 Lv.${level} → Lv.${level+1} 目前 EXP：${fmt(end,3)}% EXP效率：約 ${fmt(perHour,3)}% / 小時 預估升等：${d}天 ${h}小時 上線時間：${data.playTime};
+}
+
+function parseTimeToHours(str){
+
+  if(!str) return 0;
+
+  const m =
+    String(str).match(
+      /(\d+):(\d+):(\d+)/
+    );
+
+  if(!m) return 0;
+
+  return (
+    Number(m[1]) +
+    Number(m[2])/60 +
+    Number(m[3])/3600
+  );
+}
+
+function fmt(n,d=3){
+
+  if(!isFinite(n))
+    return "-";
+
+  return Number(n)
+    .toFixed(d)
+    .replace(/.?0+$/,"");
+}
+
+function setStatus(text,progress){
 
   progressText.innerText = text;
 
-  bar.style.width = progress + '%';
+  bar.style.width = progress+"%";
 }
+
+function copyResult(){
+
+  if(!lastShare){
+
+    alert("尚未有結果");
+
+    return;
+  }
+
+  navigator.clipboard.writeText(lastShare);
+
+  alert("已複製結果");
+}
+
+function toggleDebug(){
+
+  debugBox.style.display =
+    debugBox.style.display === "block"
+      ? "none"
+      : "block";
+}
+
 </script>
 
 </body>
