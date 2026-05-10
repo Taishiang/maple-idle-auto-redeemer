@@ -76,7 +76,7 @@ function fillManual(data){ if(!data)return; if(data.level) mLevel.value=data.lev
 function analyzeManual(){
  const mode=mMode.value; const level=num(mLevel.value); const current=num(mCurrent.value); const before=num(mBefore.value); const monsters=num(mMonsters.value)||0; const hours=parseTimeToHours(mTime.value);
  const rate=num(mRate.value);
- let data={ok:true,level:level||null,nextLevel:level?level+1:null,current,before,after:current,hours,monsters,playtimeText:mTime.value||'手動'};
+ let data={ok:true,level:level||null,nextLevel:level?level+1:null,current,before,after:current,hours,monsters,monsterPerMinuteFromOCR:null,playtimeText:mTime.value||'手動'};
  if(mode==='hour'){data.manualPerHour=rate}else if(mode==='minute'){data.manualPerHour=rate*60}
  if(!isFinite(current)||current<0||current>100){alert('請輸入目前 EXP %');return}
  if(mode==='time' && (!isFinite(before)||!isFinite(hours)||hours<=0)){alert('請輸入上線前 EXP % 與上線時間');return}
@@ -148,9 +148,36 @@ function parseMapleText(text){
  }
  const t=cleaned.match(/(\d{1,2})[:：](\d{2})[:：](\d{2})/); let hours=null,playtimeText='';
  if(t){const h=Number(t[1]),mi=Number(t[2]),s=Number(t[3]); hours=h+mi/60+s/3600; playtimeText=`${String(h).padStart(2,'0')}:${String(mi).padStart(2,'0')}:${String(s).padStart(2,'0')}`}
- const monsterPattern=cleaned.match(/(?:monster|MONSTER|怪物|hunted|數量)[^0-9]{0,30}([\d,]{3,9})/i);
- let monsters=0; if(monsterPattern) monsters=Number(monsterPattern[1].replace(/,/g,''));
- if(!monsters){const nums=(cleaned.match(/\b\d{3,7}\b/g)||[]).map(x=>Number(x.replace(/,/g,''))).filter(x=>x>=100&&x<9999999); monsters=nums.length?nums[0]:0}
+ // 怪物數：遊戲有兩種顯示
+ // A. 目前狩獵的怪物數量 2200 ＝總怪物數
+ // B. 每分鐘狩獵的怪物數量 106.6 ＝每分鐘怪物數
+ let monsters=0;
+ let monsterPerMinuteFromOCR=null;
+
+ // 優先判斷「每分鐘」模式，避免把 106.6 當成總怪物數再除以上線時間
+ const perMinPattern = cleaned.match(/(?:每分鐘|per\s*min|minute)[^0-9]{0,40}(\d{1,5}(?:[\.,]\d+)?)/i);
+ if(perMinPattern){
+   monsterPerMinuteFromOCR = Number(perMinPattern[1].replace(',','.'));
+ }
+
+ // 總怪物數模式
+ const totalMonsterPattern = cleaned.match(/(?:目前|總|total|hunted|狩獵)[^0-9]{0,40}(\d{3,9}(?:,\d{3})*)/i);
+ if(totalMonsterPattern){
+   monsters = Number(totalMonsterPattern[1].replace(/,/g,''));
+ }
+
+ // 如果沒抓到總數，但有每分鐘，就反推總怪物數，讓歷史與顯示仍可用
+ if(!monsters && monsterPerMinuteFromOCR && hours){
+   monsters = monsterPerMinuteFromOCR * hours * 60;
+ }
+
+ // 最後備援：只抓 1000 以上，避免把 106.6 這種每分鐘數字當總數
+ if(!monsters){
+   const nums=(cleaned.match(/\b\d{4,7}\b/g)||[])
+     .map(x=>Number(x.replace(/,/g,'')))
+     .filter(x=>x>=1000&&x<9999999);
+   monsters=nums.length?nums[0]:0;
+ }
  // 等級：只認紅框區常見的 Lv.xxx，不用最大值，避免抓到 Stage / 物品數量 / 319
  let levelCandidates = [];
 
@@ -180,18 +207,49 @@ function parseMapleText(text){
    );
  }
 
- if(!isFinite(current)||!isFinite(before)) return {ok:false,reason:'找不到 Lv 旁邊的兩個 EXP 百分比',level,current,before,hours,monsters,playtimeText};
- if(!isFinite(hours)||hours<=0) return {ok:false,reason:'找不到 PLAYTIME / 上線時間',level,current,before,hours,monsters,playtimeText};
+ if(!isFinite(current)||!isFinite(before)) return {ok:false,reason:'找不到 Lv 旁邊的兩個 EXP 百分比',level,current,before,hours,monsters,monsterPerMinuteFromOCR,playtimeText};
+ if(!isFinite(hours)||hours<=0) return {ok:false,reason:'找不到 PLAYTIME / 上線時間',level,current,before,hours,monsters,monsterPerMinuteFromOCR,playtimeText};
 
  // nextLevel 不再吃 OCR 第二個等級，永遠用目前等級 + 1
- return {ok:true,level,nextLevel:level?level+1:null,current,before,after:current,hours,monsters,playtimeText};
+ return {ok:true,level,nextLevel:level?level+1:null,current,before,after:current,hours,monsters,monsterPerMinuteFromOCR,playtimeText};
 }
 function calculate(data){
- const perHour=data.manualPerHour || ((data.current-data.before)/data.hours); const remain=100-data.current;
- if(perHour<=0||remain<=0)return{timeText:'已達標或資料錯誤',perHour:0,perDay:0,monsterPerMinute:0,monsterPerHour:0};
- const needHours=remain/perHour, days=Math.floor(needHours/24), hours=needHours-days*24;
- const mph=data.hours?data.monsters/data.hours:0;
- return{timeText:`約 ${days} 天 ${hours.toFixed(1)} 小時`,perHour,perDay:perHour*24,monsterPerHour:mph,monsterPerMinute:mph/60};
+ const perHour=data.manualPerHour || ((data.current-data.before)/data.hours);
+ const remain=100-data.current;
+
+ if(perHour<=0||remain<=0){
+   return{
+     timeText:'已達標或資料錯誤',
+     perHour:0,
+     perDay:0,
+     monsterPerMinute:0,
+     monsterPerHour:0
+   };
+ }
+
+ const needHours=remain/perHour;
+ const days=Math.floor(needHours/24);
+ const hours=needHours-days*24;
+
+ let monsterPerMinute=0;
+ let monsterPerHour=0;
+
+ // 如果遊戲畫面顯示的是「每分鐘狩獵怪物數量」，直接採用，不再除以上線時間
+ if(data.monsterPerMinuteFromOCR){
+   monsterPerMinute=data.monsterPerMinuteFromOCR;
+   monsterPerHour=monsterPerMinute*60;
+ }else{
+   monsterPerHour=data.hours?data.monsters/data.hours:0;
+   monsterPerMinute=monsterPerHour/60;
+ }
+
+ return{
+   timeText:`約 ${days} 天 ${hours.toFixed(1)} 小時`,
+   perHour,
+   perDay:perHour*24,
+   monsterPerHour,
+   monsterPerMinute
+ };
 }
 function parseTimeToHours(v){v=(v||'').trim(); const hms=v.match(/(\d{1,3})[:：](\d{1,2})[:：](\d{1,2})/); if(hms)return Number(hms[1])+Number(hms[2])/60+Number(hms[3])/3600; const min=v.match(/(\d+(?:\.\d+)?)\s*(分|m|min)/i); if(min)return Number(min[1])/60; const hr=v.match(/(\d+(?:\.\d+)?)\s*(小時|h|hr)/i); if(hr)return Number(hr[1]); return Number(v)}
 function num(v){return Number(String(v||'').replace('%','').replace(',','.').replace(/[^\d.]/g,''))}
