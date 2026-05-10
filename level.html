@@ -3,355 +3,263 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Maple Idle 圖片升級計算器</title>
-
+<title>Maple Idle 升級時間分析器</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-
 <style>
 body{
   margin:0;
-  padding:24px;
+  min-height:100vh;
   background:#0f172a;
   color:white;
   font-family:Arial,"Noto Sans TC",sans-serif;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
 }
-.wrap{
-  max-width:960px;
-  margin:auto;
-  background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:28px;
-  padding:28px;
-  box-shadow:0 20px 80px rgba(0,0,0,.45);
-}
-h1{margin:0;font-size:34px}
-.sub{color:#cbd5e1;line-height:1.7}
-.back{
-  display:inline-block;
-  margin-bottom:20px;
-  text-decoration:none;
-  background:#1e293b;
-  color:white;
-  padding:12px 18px;
-  border-radius:14px;
-  font-weight:800;
-}
-.grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:14px;
-}
-.box{
+.card{
+  width:100%;
+  max-width:720px;
   background:rgba(255,255,255,.06);
   border:1px solid rgba(255,255,255,.1);
-  border-radius:18px;
-  padding:16px;
+  border-radius:28px;
+  padding:34px;
+  text-align:center;
+  box-shadow:0 20px 80px rgba(0,0,0,.45);
 }
-label{
-  font-size:14px;
-  font-weight:900;
-  display:block;
-  margin-bottom:8px;
+h1{
+  font-size:34px;
+  margin:0;
 }
-input,textarea{
+.sub{
+  color:#cbd5e1;
+  line-height:1.8;
+  margin:18px 0 28px;
+}
+input{
   width:100%;
-  box-sizing:border-box;
-  border:1px solid rgba(255,255,255,.15);
-  border-radius:14px;
-  padding:13px;
-  font-size:16px;
+  padding:18px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.12);
   background:rgba(255,255,255,.08);
   color:white;
-  outline:none;
-}
-textarea{
-  min-height:130px;
+  font-size:16px;
+  box-sizing:border-box;
 }
 button{
   width:100%;
   margin-top:18px;
   border:0;
   border-radius:18px;
-  padding:17px;
-  background:linear-gradient(135deg,#06b6d4,#3b82f6);
-  color:white;
-  font-size:19px;
+  padding:18px;
+  font-size:20px;
   font-weight:900;
+  color:white;
+  background:linear-gradient(135deg,#06b6d4,#3b82f6);
   cursor:pointer;
 }
-.result{
+.preview{
+  display:none;
+  width:100%;
+  max-height:360px;
+  object-fit:contain;
   margin-top:20px;
-  background:rgba(6,182,212,.12);
+  border-radius:18px;
+}
+.status{
+  margin-top:20px;
+  color:#facc15;
+  line-height:1.8;
+}
+.result{
+  margin-top:26px;
+  padding:24px;
+  border-radius:24px;
+  background:rgba(6,182,212,.14);
   border:1px solid rgba(103,232,249,.35);
-  border-radius:22px;
-  padding:22px;
 }
 .big{
-  font-size:38px;
+  font-size:42px;
   font-weight:900;
   color:#67e8f9;
-  margin:8px 0;
+  margin-top:10px;
 }
-.details{
-  line-height:1.9;
+.detail{
+  margin-top:14px;
   color:#dbeafe;
+  line-height:1.8;
+  font-size:15px;
 }
-.preview{
-  max-width:100%;
-  margin-top:12px;
-  border-radius:16px;
-  display:none;
+.back{
+  display:inline-block;
+  margin-bottom:22px;
+  color:white;
+  text-decoration:none;
+  background:#1e293b;
+  padding:12px 18px;
+  border-radius:14px;
+  font-weight:800;
 }
-.warn{
-  margin-top:16px;
-  color:#fed7aa;
-  background:rgba(249,115,22,.12);
-  border:1px solid rgba(251,146,60,.35);
+.debug{
+  margin-top:18px;
+  text-align:left;
+  background:rgba(0,0,0,.25);
   border-radius:16px;
   padding:14px;
-  line-height:1.7;
+  color:#94a3b8;
+  font-size:13px;
+  line-height:1.6;
+  display:none;
+  white-space:pre-wrap;
 }
-@media(max-width:700px){
-  body{padding:12px}
-  .grid{grid-template-columns:1fr}
-  h1{font-size:28px}
-  .big{font-size:30px}
+.smallBtn{
+  background:#334155;
+  font-size:14px;
+  padding:12px;
 }
 </style>
 </head>
-
 <body>
-
-<div class="wrap">
-
+<div class="card">
 <a class="back" href="index.html">← 回首頁</a>
-
-<h1>📊 Maple Idle 圖片升級計算器</h1>
-
-<p class="sub">
-上傳遊戲截圖後，系統會用 OCR 嘗試辨識 EXP%、掛機時間、怪物數。<br>
-辨識不一定 100% 準，請確認欄位後再計算。
-</p>
-
-<div class="box">
-<label>上傳遊戲截圖</label>
+<h1>📊 Maple Idle 升級分析器</h1>
+<div class="sub">
+上傳遊戲截圖後，自動分析 EXP 與掛機時間，直接顯示預估剩餘升級時間。
+</div>
 <input type="file" id="imageUpload" accept="image/*">
 <img id="preview" class="preview">
-<button onclick="analyzeImage()">開始圖片辨識</button>
-<div class="warn" id="ocrStatus">尚未上傳圖片</div>
-</div>
-
-<div class="box" style="margin-top:14px">
-<label>OCR 辨識文字</label>
-<textarea id="ocrText" placeholder="辨識後文字會出現在這裡，也可以手動貼文字"></textarea>
-<button onclick="parseText()">從文字自動抓數字</button>
-</div>
-
-<div class="grid" style="margin-top:14px">
-
-<div class="box">
-<label>目前經驗 %</label>
-<input id="current" type="number" step="0.001" value="34.159">
-</div>
-
-<div class="box">
-<label>目標經驗 %</label>
-<input id="target" type="number" step="0.001" value="100">
-</div>
-
-<div class="box">
-<label>掛機前經驗 %</label>
-<input id="before" type="number" step="0.001" value="32.453">
-</div>
-
-<div class="box">
-<label>掛機後經驗 %</label>
-<input id="after" type="number" step="0.001" value="34.159">
-</div>
-
-<div class="box">
-<label>掛機時間（小時）</label>
-<input id="hours" type="number" step="0.01" value="8.43">
-</div>
-
-<div class="box">
-<label>每日掛機時數</label>
-<input id="daily" type="number" step="0.1" value="24">
-</div>
-
-<div class="box">
-<label>每分鐘怪物數（可選）</label>
-<input id="monsterMin" type="number" step="0.1" placeholder="例如 106.6">
-</div>
-
-<div class="box">
-<label>每小時怪物數（可選）</label>
-<input id="monsterHour" type="number" step="1" placeholder="例如 6400">
-</div>
-
-</div>
-
-<button onclick="calc()">計算升級時間</button>
-
+<button onclick="analyzeImage()">開始分析圖片</button>
+<div class="status" id="status">請先上傳遊戲截圖</div>
 <div class="result">
-<div>預估剩餘時間</div>
-<div class="big" id="main">計算中...</div>
-<div class="details" id="detail"></div>
+  <div>預估剩餘升級時間</div>
+  <div class="big" id="main">尚未分析</div>
+  <div class="detail" id="detail"></div>
 </div>
-
-<div class="warn">
-小提醒：圖片 OCR 會受截圖清晰度、字體大小、背景影響。最準還是確認 EXP%、時間後再算。
+<button class="smallBtn" onclick="toggleDebug()">查看辨識結果</button>
+<div class="debug" id="debug"></div>
 </div>
-
-</div>
-
 <script>
-let uploadedFile = null;
-
-document.getElementById('imageUpload').addEventListener('change', function(e){
-  uploadedFile = e.target.files[0];
-
-  if(!uploadedFile) return;
-
-  const img = document.getElementById('preview');
-  img.src = URL.createObjectURL(uploadedFile);
-  img.style.display = 'block';
-
-  document.getElementById('ocrStatus').innerText = '圖片已上傳，請按「開始圖片辨識」';
+let uploadedFile=null;
+document.getElementById('imageUpload').addEventListener('change',e=>{
+  uploadedFile=e.target.files[0];
+  if(!uploadedFile)return;
+  const img=document.getElementById('preview');
+  img.src=URL.createObjectURL(uploadedFile);
+  img.style.display='block';
+  document.getElementById('status').innerText='圖片已上傳，請按「開始分析圖片」';
 });
-
+function toggleDebug(){
+  const box=document.getElementById('debug');
+  box.style.display=box.style.display==='block'?'none':'block';
+}
 async function analyzeImage(){
   if(!uploadedFile){
     alert('請先上傳圖片');
     return;
   }
-
-  const status = document.getElementById('ocrStatus');
-  status.innerText = '辨識中，請稍等...';
-
+  const status=document.getElementById('status');
+  status.innerText='辨識中，第一次可能需要 10~30 秒...';
   try{
-    const result = await Tesseract.recognize(
+    const result=await Tesseract.recognize(
       uploadedFile,
       'eng+chi_tra',
       {
-        logger: m => {
-          if(m.status === 'recognizing text'){
-            status.innerText = '辨識中：' + Math.round(m.progress * 100) + '%';
+        logger:m=>{
+          if(m.status==='recognizing text'){
+            status.innerText='辨識中：'+Math.round(m.progress*100)+'%';
           }
         }
       }
     );
-
-    const text = result.data.text;
-    document.getElementById('ocrText').value = text;
-    status.innerText = '辨識完成，已自動抓數字';
-
-    parseText();
-
+    const text=result.data.text;
+    document.getElementById('debug').innerText=text;
+    const data=parseMapleText(text);
+    if(!data.ok){
+      status.innerText='辨識失敗，請換清楚一點的截圖';
+      document.getElementById('main').innerText='無法分析';
+      document.getElementById('detail').innerHTML=data.reason;
+      return;
+    }
+    const calc=calculate(data);
+    status.innerText='分析完成';
+    document.getElementById('main').innerText=calc.timeText;
+    document.getElementById('detail').innerHTML=
+      `目前 EXP：<b>${data.current}%</b><br>`+
+      `掛機前 EXP：<b>${data.before}%</b><br>`+
+      `掛機後 EXP：<b>${data.after}%</b><br>`+
+      `掛機時間：<b>${data.playtimeText}</b><br>`+
+      `效率：約 <b>${calc.perHour.toFixed(3)}% / 小時</b>`;
   }catch(err){
     console.error(err);
-    status.innerText = '辨識失敗，請換清楚一點的截圖';
+    status.innerText='分析失敗，請重新上傳較清楚的圖片';
+    document.getElementById('main').innerText='分析失敗';
   }
 }
-
-function parseText(){
-  const text = document.getElementById('ocrText').value;
-
-  if(!text.trim()){
-    alert('沒有文字可以分析');
-    return;
+function parseMapleText(text){
+  const cleaned=text.replace(/\s+/g,' ');
+  const percentMatches=cleaned.match(/\d{1,3}\.\d{1,3}\s*%/g) || [];
+  const percents=percentMatches
+    .map(x=>Number(x.replace('%','').trim()))
+    .filter(x=>isFinite(x) && x>=0 && x<=100);
+  if(percents.length<2){
+    return {
+      ok:false,
+      reason:'找不到足夠的 EXP 百分比。請確認截圖中有掛機前後 EXP。'
+    };
   }
-
-  let found = [];
-
-  const percentMatches = text.match(/\d{1,3}\.\d{1,3}\s*%/g);
-
-  if(percentMatches && percentMatches.length){
-    found = percentMatches.map(x => parseFloat(x.replace('%','').trim()));
-
-    if(found.length >= 1){
-      document.getElementById('current').value = found[found.length - 1];
-      document.getElementById('after').value = found[found.length - 1];
-    }
-
-    if(found.length >= 2){
-      document.getElementById('before').value = found[0];
-      document.getElementById('after').value = found[1];
-      document.getElementById('current').value = found[1];
-    }
+  let before=percents[0];
+  let after=percents[1];
+  if(after<before && percents.length>=3){
+    before=percents[1];
+    after=percents[2];
   }
-
-  const timeMatch = text.match(/(\d{1,2})[:：](\d{2})[:：](\d{2})/);
-
-  if(timeMatch){
-    const h = Number(timeMatch[1]);
-    const m = Number(timeMatch[2]);
-    const s = Number(timeMatch[3]);
-    const totalHours = h + m / 60 + s / 3600;
-    document.getElementById('hours').value = totalHours.toFixed(2);
+  const current=after;
+  const timeMatch=cleaned.match(/(\d{1,2})[:：](\d{2})[:：](\d{2})/);
+  if(!timeMatch){
+    return {
+      ok:false,
+      reason:'找不到 PLAYTIME 時間。請確認截圖有 00:37:24 這種格式。'
+    };
   }
-
-  const minMonsterMatch =
-    text.match(/每分鐘.*?(\d+\.?\d*)/) ||
-    text.match(/min.*?(\d+\.?\d*)/i);
-
-  if(minMonsterMatch){
-    document.getElementById('monsterMin').value = minMonsterMatch[1];
+  const h=Number(timeMatch[1]);
+  const m=Number(timeMatch[2]);
+  const s=Number(timeMatch[3]);
+  const hours=h+m/60+s/3600;
+  if(hours<=0){
+    return {
+      ok:false,
+      reason:'掛機時間為 0，無法計算。'
+    };
   }
-
-  const hourMonsterMatch =
-    text.match(/每小時.*?(\d+\.?\d*)/) ||
-    text.match(/hour.*?(\d+\.?\d*)/i);
-
-  if(hourMonsterMatch){
-    document.getElementById('monsterHour').value = hourMonsterMatch[1];
-  }
-
-  calc();
+  return {
+    ok:true,
+    current,
+    before,
+    after,
+    hours,
+    playtimeText:`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+  };
 }
-
-function calc(){
-
-const current=Number(document.getElementById('current').value);
-const target=Number(document.getElementById('target').value);
-const before=Number(document.getElementById('before').value);
-const after=Number(document.getElementById('after').value);
-const hours=Number(document.getElementById('hours').value);
-const daily=Number(document.getElementById('daily').value);
-
-const gain=after-before;
-const perHour=gain/hours;
-const remain=target-current;
-
-if(!isFinite(perHour) || perHour<=0 || remain<=0 || daily<=0){
-document.getElementById('main').innerText='資料錯誤或已達標';
-document.getElementById('detail').innerHTML='請確認：掛機後經驗要大於掛機前經驗，時間要大於 0。';
-return;
+function calculate(data){
+  const target=100;
+  const dailyHours=24;
+  const gain=data.after-data.before;
+  const perHour=gain/data.hours;
+  const remain=target-data.current;
+  if(perHour<=0 || remain<=0){
+    return {
+      timeText:'已達標或資料錯誤',
+      perHour:0
+    };
+  }
+  const needHours=remain/perHour;
+  const days=Math.floor(needHours/dailyHours);
+  const hours=needHours-days*dailyHours;
+  return {
+    timeText:`約 ${days} 天 ${hours.toFixed(1)} 小時`,
+    perHour
+  };
 }
-
-const needHours=remain/perHour;
-const days=Math.floor(needHours/daily);
-const remainHours=(needHours-days*daily).toFixed(1);
-
-document.getElementById('main').innerText=
-`約 ${days} 天 ${remainHours} 小時`;
-
-document.getElementById('detail').innerHTML=
-`
-剩餘 ${remain.toFixed(3)}%<br>
-掛機提升 ${gain.toFixed(3)}%<br>
-每小時約 ${perHour.toFixed(3)}%<br>
-每日約 ${(perHour*daily).toFixed(2)}%
-`;
-
-}
-
-document.querySelectorAll('input').forEach(input=>{
-  input.addEventListener('input', calc);
-});
-
-calc();
 </script>
-
 </body>
 </html>
