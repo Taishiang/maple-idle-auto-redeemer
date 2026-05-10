@@ -13,6 +13,8 @@ body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,"Not
 
 <body>
 <div class="container">
+
+<a href="index.html" class="homeBtn">← 回首頁</a>
 <h2>掛機效率分析器</h2>
 
 <div class="card upload" onclick="upload.click()">
@@ -147,10 +149,80 @@ function runManual(){
 }
 
 function fillManual(data){if(!data)return;if(data.level)mLevel.value=data.level;if(isFinite(data.start))mStart.value=data.start;if(isFinite(data.end))mEnd.value=data.end;if(data.playtimeText)mTime.value=data.playtimeText;if(isFinite(data.monsterNumber))mMonster.value=data.monsterNumber}
+
+function getFixedLevel() {
+  const saved = Number(localStorage.getItem("mapleFixedLevel") || "");
+  if (isFinite(saved) && saved >= 1 && saved <= 250) {
+    if (fixedLevelInput && !fixedLevelInput.value) fixedLevelInput.value = saved;
+    return saved;
+  }
+
+  return null;
+}
+
+function saveFixedLevel() {
+  const lv = Number(String(fixedLevelInput.value || "").replace(/[^\d]/g, ""));
+
+  if (!isFinite(lv) || lv < 1 || lv > 250) {
+    alert("請輸入正確等級，例如 106");
+    return;
+  }
+
+  localStorage.setItem("mapleFixedLevel", String(lv));
+  levelHint.innerText = `已手動套用備援等級：Lv.${lv}`;
+  alert(`已手動套用 Lv.${lv}`);
+}
+
+window.addEventListener("load", () => {
+  const saved = Number(localStorage.getItem("mapleFixedLevel") || "");
+  if (isFinite(saved) && saved >= 1 && saved <= 250) {
+    fixedLevelInput.value = saved;
+    levelHint.innerText = `已保存備援等級：Lv.${saved}。系統仍會優先自動辨識。`;
+  }
+});
+
 function detectBattleMode(label,numberText,value){const s=String(label||'').replace(/\s+/g,'').replace(/[Oo]/g,'0');if(s.includes('每分鐘')||s.includes('分鐘'))return'minute';if(s.includes('每小時')||s.includes('小時'))return'hour';if(s.includes('目前狩獵')||s.includes('目前')||s.includes('總'))return'total';const raw=String(numberText||''),hasDecimal=/[\.,]/.test(raw);if(hasDecimal&&isFinite(value)&&value>=1000)return'hour';if(hasDecimal&&isFinite(value)&&value<1000)return'minute';if(isFinite(value)&&value>=1000)return'total';if(isFinite(value)&&value>0)return'minute';return'fallback'}
 function normalizeMonster(value,mode,hours,rawText=''){let total=NaN,perMinute=NaN,perHour=NaN;if(!isFinite(value)||value<=0)return{total,perMinute,perHour};let finalMode=mode;if(finalMode==='auto')finalMode=detectBattleMode('',rawText,value);if(finalMode==='minute'){perMinute=value;perHour=value*60;total=isFinite(hours)?perHour*hours:NaN}if(finalMode==='hour'){perHour=value;perMinute=value/60;total=isFinite(hours)?perHour*hours:NaN}if(finalMode==='total'){total=value;perHour=isFinite(hours)&&hours>0?value/hours:NaN;perMinute=perHour/60}return{total,perMinute,perHour}}
 function cleanText(t){return String(t||'').replace(/[，]/g,'.').replace(/[Oo]/g,'0').replace(/\s+/g,' ').trim()}
-function getLevel(t){const s=String(t||'').replace(/[Oo]/g,'0');const matches=s.match(/L\s*v?\s*\.?\s*(\d{1,3})/gi)||[];const candidates=matches.map(x=>{const m=x.match(/\d{1,3}/);return m?Number(m[0]):NaN}).filter(n=>isFinite(n)&&n>=1&&n<=250);return candidates.length?candidates[0]:null}
+function getLevelCandidatesFromText(t) {
+  const s = String(t || "")
+    .replace(/[Oo]/g, "0")
+    .replace(/[Il|]/g, "1")
+    .replace(/[Zz]/g, "2")
+    .replace(/[Ss]/g, "5");
+
+  const candidates = [];
+
+  const lvMatches = s.match(/L\s*v?\s*\.?\s*(\d{2,3})/gi) || [];
+  lvMatches.forEach(x => {
+    const m = x.match(/\d{2,3}/);
+    if (m) candidates.push(Number(m[0]));
+  });
+
+  const nums = s.match(/\d{2,3}/g) || [];
+  nums.forEach(x => candidates.push(Number(x)));
+
+  return candidates.filter(n => isFinite(n) && n >= 10 && n <= 250);
+}
+
+function chooseBestLevel(levelTexts) {
+  let all = [];
+  levelTexts.forEach(t => {
+    all = all.concat(getLevelCandidatesFromText(t));
+  });
+
+  all = all.filter(n => n >= 10 && n <= 250);
+
+  if (!all.length) return null;
+
+  const counts = {};
+  all.forEach(n => counts[n] = (counts[n] || 0) + 1);
+
+  return Object.keys(counts)
+    .map(Number)
+    .sort((a,b) => counts[b] - counts[a] || a - b)[0];
+}
+
 function getPercents(t){const matches=String(t||'').match(/\d{1,3}[\.,]\d{1,3}\s*%?/g)||[];const arr=matches.map(x=>Number(x.replace('%','').replace(',','.').trim())).filter(x=>isFinite(x)&&x>=0&&x<=100).map(x=>Number(x.toFixed(3)));return[...new Set(arr)].sort((a,b)=>a-b)}
 function parseTime(t){const m=String(t||'').match(/(\d{1,3})[:：](\d{2})[:：](\d{2})/);if(!m)return{hours:NaN,text:''};const h=Number(m[1]),mi=Number(m[2]),s=Number(m[3]);return{hours:h+mi/60+s/3600,text:`${String(h).padStart(2,'0')}:${String(mi).padStart(2,'0')}:${String(s).padStart(2,'0')}`}}
 function parseTimeToHours(v){v=String(v||'').trim();const hms=v.match(/(\d{1,3})[:：](\d{1,2})[:：](\d{1,2})/);if(hms)return Number(hms[1])+Number(hms[2])/60+Number(hms[3])/3600;const min=v.match(/(\d+(?:\.\d+)?)\s*(分|m|min)/i);if(min)return Number(min[1])/60;const hr=v.match(/(\d+(?:\.\d+)?)\s*(小時|h|hr)/i);if(hr)return Number(hr[1]);return Number(v)}
@@ -164,4 +236,238 @@ function toggleManual(){manualBox.style.display=manualBox.style.display==='block
 function toggleDebug(){debugBox.style.display=debugBox.style.display==='block'?'none':'block'}
 </script>
 </body>
-</html>
+</html>function makeZones(img) {
+  const list = [];
+
+  function add(key, name, x, y, w, h, scale, extra = {}) {
+    list.push({
+      key,
+      name,
+      canvas: crop(img, x, y, w, h, scale, extra.mode || "threshold"),
+      ...extra
+    });
+  }
+
+  function addPanel(key, name, panel, rx, ry, rw, rh, scale, extra = {}) {
+    const x = panel.x + panel.w * rx;
+    const y = panel.y + panel.h * ry;
+    const w = panel.w * rw;
+    const h = panel.h * rh;
+    add(key, name, x, y, w, h, scale, extra);
+  }
+
+  const panel = findBattlePanel(img);
+
+  if (panel) {
+    // 自動定位成功：以下都用黑框面板內的相對位置，不怕 UI 微偏移
+    addPanel("battleLabel", "戰鬥狀況文字", panel, 0.04, 0.18, 0.70, 0.18, 8, {
+      lang: "chi_tra+eng",
+      noWhitelist: true,
+      mode: "normal"
+    });
+
+    addPanel("monsterValue", "怪物數值", panel, 0.72, 0.18, 0.25, 0.18, 12, {
+      whitelist: "0123456789.,"
+    });
+
+    addPanel("playtime", "上線時間", panel, 0.02, 0.45, 0.45, 0.22, 10, {
+      whitelist: "0123456789:"
+    });
+
+    addPanel("rightLevelExp", "右側等級EXP", panel, 0.50, 0.43, 0.48, 0.27, 12, {
+      whitelist: "0123456789.,:%LvV()>"
+    });
+
+    // 右側等級寬抓
+    addPanel("levelRightWideNormal", "右側等級寬正常", panel, 0.50, 0.43, 0.48, 0.15, 18, {
+      mode: "normal",
+      whitelist: "0123456789LvV.>"
+    });
+
+    addPanel("levelRightWideBW", "右側等級寬黑白", panel, 0.50, 0.43, 0.48, 0.15, 20, {
+      mode: "threshold",
+      whitelist: "0123456789LvV.>"
+    });
+
+    // 底部 EXP 還是以整張圖底部為準
+    add("bottomExp", "底部EXP", 0.000, 0.935, 0.360, 0.055, 10, {
+      whitelist: "0123456789.,:%EXP"
+    });
+
+    // 底部 Lv 備援
+    add("levelBottomWideNormal", "底部等級寬正常", 0.385, 0.735, 0.180, 0.095, 20, {
+      mode: "normal",
+      whitelist: "0123456789LvV."
+    });
+
+    add("levelBottomWideBW", "底部等級寬黑白", 0.385, 0.735, 0.180, 0.095, 22, {
+      mode: "threshold",
+      whitelist: "0123456789LvV."
+    });
+
+    return list;
+  }
+
+  // 找不到黑框才退回固定座標
+  add("battleLabel", "戰鬥狀況文字", 0.605, 0.240, 0.300, 0.065, 8, {
+    lang: "chi_tra+eng",
+    noWhitelist: true,
+    mode: "normal"
+  });
+
+  add("monsterValue", "怪物數值", 0.895, 0.245, 0.090, 0.070, 12, {
+    whitelist: "0123456789.,"
+  });
+
+  add("playtime", "上線時間", 0.595, 0.325, 0.180, 0.085, 10, {
+    whitelist: "0123456789:"
+  });
+
+  add("rightLevelExp", "右側等級EXP", 0.780, 0.300, 0.215, 0.130, 12, {
+    whitelist: "0123456789.,:%LvV()>"
+  });
+
+  add("bottomExp", "底部EXP", 0.000, 0.935, 0.360, 0.055, 10, {
+    whitelist: "0123456789.,:%EXP"
+  });
+
+  add("levelRightWideNormal", "右側等級寬正常", 0.800, 0.312, 0.190, 0.090, 18, {
+    mode: "normal",
+    whitelist: "0123456789LvV.>"
+  });
+
+  add("levelRightWideBW", "右側等級寬黑白", 0.800, 0.312, 0.190, 0.090, 20, {
+    mode: "threshold",
+    whitelist: "0123456789LvV.>"
+  });
+
+  add("levelBottomWideNormal", "底部等級寬正常", 0.385, 0.735, 0.180, 0.095, 20, {
+    mode: "normal",
+    whitelist: "0123456789LvV."
+  });
+
+  add("levelBottomWideBW", "底部等級寬黑白", 0.385, 0.735, 0.180, 0.095, 22, {
+    mode: "threshold",
+    whitelist: "0123456789LvV."
+  });
+
+  return list;
+}
+
+function findBattlePanel(img) {
+  // 掃描右半邊，找深色半透明矩形面板。
+  // 回傳比例座標：{x,y,w,h}，全部都是 0~1。
+  const c = document.createElement("canvas");
+  const maxW = 320;
+  const scale = maxW / img.width;
+  c.width = maxW;
+  c.height = Math.round(img.height * scale);
+
+  const ctx = c.getContext("2d");
+  ctx.drawImage(img, 0, 0, c.width, c.height);
+
+  const data = ctx.getImageData(0, 0, c.width, c.height).data;
+  const W = c.width;
+  const H = c.height;
+
+  const xStart = Math.floor(W * 0.50);
+  const xEnd = Math.floor(W * 0.99);
+  const yStart = Math.floor(H * 0.08);
+  const yEnd = Math.floor(H * 0.55);
+
+  function isDark(x, y) {
+    const i = (y * W + x) * 4;
+    const r = data[i], g = data[i+1], b = data[i+2];
+    const bright = (r + g + b) / 3;
+    return bright < 95;
+  }
+
+  let best = null;
+
+  // 用滑動視窗找暗色密度最高的大片區域
+  const candidates = [
+    {w:0.38,h:0.28},
+    {w:0.40,h:0.32},
+    {w:0.42,h:0.35},
+    {w:0.36,h:0.30}
+  ];
+
+  for (const size of candidates) {
+    const winW = Math.floor(W * size.w);
+    const winH = Math.floor(H * size.h);
+    const stepX = Math.max(4, Math.floor(W * 0.015));
+    const stepY = Math.max(4, Math.floor(H * 0.015));
+
+    for (let y = yStart; y + winH < yEnd; y += stepY) {
+      for (let x = xStart; x + winW < xEnd; x += stepX) {
+        let dark = 0;
+        let total = 0;
+
+        // 取樣，不用每點都掃
+        for (let yy = y; yy < y + winH; yy += 4) {
+          for (let xx = x; xx < x + winW; xx += 4) {
+            total++;
+            if (isDark(xx, yy)) dark++;
+          }
+        }
+
+        const density = dark / total;
+
+        // 自動狩獵面板會是大量暗色，但不是全黑
+        if (density > 0.42) {
+          const score = density;
+
+          if (!best || score > best.score) {
+            best = {x, y, w:winW, h:winH, score};
+          }
+        }
+      }
+    }
+  }
+
+  if (!best) return null;
+
+  // 稍微放大面板，避免切到字
+  let x = Math.max(0, best.x - Math.floor(W * 0.015));
+  let y = Math.max(0, best.y - Math.floor(H * 0.015));
+  let w = Math.min(W - x, best.w + Math.floor(W * 0.030));
+  let h = Math.min(H - y, best.h + Math.floor(H * 0.030));
+
+  return {
+    x: x / W,
+    y: y / H,
+    w: w / W,
+    h: h / H
+  };
+}
+
+function crop(img, x, y, w, h, scale, mode = "threshold") {
+  const canvas = document.createElement("canvas");
+  const sx = img.width * x;
+  const sy = img.height * y;
+  const sw = img.width * w;
+  const sh = img.height * h;
+
+  canvas.width = Math.max(1, Math.round(sw * scale));
+  canvas.height = Math.max(1, Math.round(sh * scale));
+
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+
+  if (mode === "normal") return canvas;
+
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const d = imageData.data;
+
+  for (let i = 0; i < d.length; i += 4) {
+    const gray = d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114;
+    const v = gray > 125 ? 255 : 0;
+    d[i] = v;
+    d[i+1] = v;
+    d[i+2] = v;
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+  return canvas;
+}
+
