@@ -20,8 +20,14 @@ button{width:100%;margin-top:16px;border:0;border-radius:18px;padding:17px;font-
 <div class="card">
 <a class="back" href="index.html">← 回首頁</a>
 <h1>📊 Maple Idle 升級分析器</h1>
-<div class="sub">上傳「自動狩獵概況」截圖，用 <b>上線時間 + EXP 增加量</b> 計算升級時間。</div>
+<div class="sub">上傳「自動狩獵概況」截圖，用 <b>上線時間 + EXP 增加量</b> 計算升級時間。怪物數可選每分鐘 / 每小時 / 總數。</div>
 <input type="file" id="imageUpload" accept="image/*">
+
+<select id="monsterMode">
+  <option value="minute" selected>怪物數顯示：每分鐘</option>
+  <option value="hour">怪物數顯示：每小時</option>
+  <option value="total">怪物數顯示：總怪物數</option>
+</select>
 <img id="preview" class="preview">
 <button onclick="analyzeImage()">開始分析圖片</button>
 <div class="status" id="status">請先上傳遊戲截圖</div>
@@ -152,7 +158,7 @@ async function makeOCRCanvases(file){
 
  // UI 固定座標：只抓需要的區塊，不再搜尋獲得道具列表
  // 右側自動狩獵概況上方數字：每分鐘怪物 / 或目前怪物總數
- add('monsterRate','怪物數/每分鐘數',0.86,0.245,0.11,0.055,10);
+ add('monsterRate','怪物數數值',0.915,0.265,0.075,0.060,12);
 
  // PLAYTIME
  add('playtime','上線時間',0.60,0.335,0.16,0.075,9);
@@ -224,18 +230,30 @@ function parseFixedZones(texts){
  const hours = parsedTime.hours;
  const playtimeText = parsedTime.text;
 
- // 怪物數/每分鐘數：這個固定區塊只會有上方那個數字，不碰道具列表
+ // 怪物數數值：這是遊戲已經算好的數值，不要亂猜
+ // 使用者可選：每分鐘 / 每小時 / 總怪物數
  const monsterNumber = firstNumber(monsterText);
+ const monsterMode = document.getElementById('monsterMode')?.value || 'minute';
+
  let monsters = 0;
  let monsterPerMinuteFromOCR = null;
+ let monsterPerHourFromOCR = null;
 
  if(isFinite(monsterNumber)){
-   // 小數幾乎就是「每分鐘狩獵怪物數量」，例如 106.6
-   if(String(monsterNumber).includes('.') || monsterNumber < 1000){
-     monsterPerMinuteFromOCR = Number(monsterNumber);
-     if(hours) monsters = monsterPerMinuteFromOCR * hours * 60;
-   }else{
-     monsters = Number(monsterNumber);
+   if(monsterMode === 'minute'){
+     monsterPerMinuteFromOCR = monsterNumber;
+     monsterPerHourFromOCR = monsterNumber * 60;
+     if(hours) monsters = monsterPerHourFromOCR * hours;
+   }
+
+   if(monsterMode === 'hour'){
+     monsterPerHourFromOCR = monsterNumber;
+     monsterPerMinuteFromOCR = monsterNumber / 60;
+     if(hours) monsters = monsterNumber * hours;
+   }
+
+   if(monsterMode === 'total'){
+     monsters = monsterNumber;
    }
  }
 
@@ -249,6 +267,7 @@ function parseFixedZones(texts){
      hours,
      monsters,
      monsterPerMinuteFromOCR,
+     monsterPerHourFromOCR,
      playtimeText
    };
  }
@@ -263,6 +282,7 @@ function parseFixedZones(texts){
      hours,
      monsters,
      monsterPerMinuteFromOCR,
+     monsterPerHourFromOCR,
      playtimeText
    };
  }
@@ -277,6 +297,7 @@ function parseFixedZones(texts){
    hours,
    monsters,
    monsterPerMinuteFromOCR,
+   monsterPerHourFromOCR,
    playtimeText
  };
 }
@@ -328,7 +349,13 @@ function parsePlayTime(t){
 }
 
 function firstNumber(t){
- const m = String(t).match(/\d{1,7}(?:[\.,]\d+)?/);
+ const s = String(t||'').replace(/[Oo]/g,'0');
+
+ // 固定區塊若有小數，優先抓小數，例如 106.6
+ const decimal = s.match(/\d{1,7}[\.,]\d+/);
+ if(decimal) return Number(decimal[0].replace(',','.'));
+
+ const m = s.match(/\d{1,7}/);
  if(!m) return NaN;
  return Number(m[0].replace(',','.'));
 }
@@ -453,11 +480,18 @@ function calculate(data){
  let monsterPerMinute=0;
  let monsterPerHour=0;
 
- // 如果遊戲畫面顯示的是「每分鐘狩獵怪物數量」，直接採用，不再除以上線時間
+ // 遊戲若已顯示每分鐘：直接用，不再除以上線時間
  if(data.monsterPerMinuteFromOCR){
    monsterPerMinute=data.monsterPerMinuteFromOCR;
-   monsterPerHour=monsterPerMinute*60;
- }else{
+   monsterPerHour=data.monsterPerHourFromOCR || monsterPerMinute*60;
+ }
+ // 遊戲若已顯示每小時：直接用，不再除以上線時間
+ else if(data.monsterPerHourFromOCR){
+   monsterPerHour=data.monsterPerHourFromOCR;
+   monsterPerMinute=monsterPerHour/60;
+ }
+ // 若是總怪物數：才用上線時間去算
+ else{
    monsterPerHour=data.hours?data.monsters/data.hours:0;
    monsterPerMinute=monsterPerHour/60;
  }
@@ -470,6 +504,7 @@ function calculate(data){
    monsterPerMinute
  };
 }
+
 function parseTimeToHours(v){v=(v||'').trim(); const hms=v.match(/(\d{1,3})[:：](\d{1,2})[:：](\d{1,2})/); if(hms)return Number(hms[1])+Number(hms[2])/60+Number(hms[3])/3600; const min=v.match(/(\d+(?:\.\d+)?)\s*(分|m|min)/i); if(min)return Number(min[1])/60; const hr=v.match(/(\d+(?:\.\d+)?)\s*(小時|h|hr)/i); if(hr)return Number(hr[1]); return Number(v)}
 function num(v){return Number(String(v||'').replace('%','').replace(',','.').replace(/[^\d.]/g,''))}
 function fmt(n,d=3){return isFinite(n)?Number(n).toFixed(d).replace(/\.?0+$/,''):'?'}
