@@ -20,14 +20,10 @@ button{width:100%;margin-top:16px;border:0;border-radius:18px;padding:17px;font-
 <div class="card">
 <a class="back" href="index.html">← 回首頁</a>
 <h1>📊 Maple Idle 升級分析器</h1>
-<div class="sub">上傳「自動狩獵概況」截圖，用 <b>上線時間 + EXP 增加量</b> 計算升級時間。怪物數可選每分鐘 / 每小時 / 總數。</div>
+<div class="sub">上傳「自動狩獵概況」截圖，用 <b>上線時間 + EXP 增加量</b> 計算升級時間。</div>
 <input type="file" id="imageUpload" accept="image/*">
 
-<select id="monsterMode">
-  <option value="minute" selected>怪物數顯示：每分鐘</option>
-  <option value="hour">怪物數顯示：每小時</option>
-  <option value="total">怪物數顯示：總怪物數</option>
-</select>
+
 <img id="preview" class="preview">
 <button onclick="analyzeImage()">開始分析圖片</button>
 <div class="status" id="status">請先上傳遊戲截圖</div>
@@ -131,13 +127,14 @@ function showResult(data,source){
  const calc=calculate(data); document.getElementById('status').innerText='分析完成';
  document.getElementById('main').innerText=calc.timeText;
  const shortSample=data.hours && data.hours<0.5 ? '<br><span class="warn">提醒：樣本低於 30 分鐘，建議掛滿 1 小時以上會更準。</span>' : '';
- const lvText = data.level && data.level <= 250 ? `${data.level} → ${data.level + 1}` : '? → ?';
+ const lvText = data.level ? `${data.level} → ${data.level + 1}` : '? → ?';
  document.getElementById('detail').innerHTML=`
  等級：<b>${lvText}</b><br>
  目前 EXP：<b>${fmt(data.current)}%</b><br>
  效率：約 <b>${fmt(calc.perHour,3)}% / 小時</b>，一天約 <b>${fmt(calc.perDay,2)}%</b><br>
  上線時間：<b>${data.playtimeText||'?'}</b><br>
- 每分鐘：約 <b>${fmt(calc.monsterPerMinute,1)}</b> 隻， 每小時：約 <b>${fmt(calc.monsterPerHour,0)}</b> 隻
+ ${data.monsters ? `總怪物：約 <b>${fmt(data.monsters,0)}</b> 隻<br>` : ''}
+    每分鐘：約 <b>${fmt(calc.monsterPerMinute,1)}</b> 隻， 每小時：約 <b>${fmt(calc.monsterPerHour,0)}</b> 隻
  ${shortSample}
  `;
  lastShare=`Maple Idle 升級分析\n目前：${data.level && data.level <= 250 ? `Lv.${data.level} → Lv.${data.level + 1}` : 'Lv.?'} ${fmt(data.current)}%\n效率：約 ${fmt(calc.perHour,3)}%/小時\n預估升級：${calc.timeText}\n上線時間：${data.playtimeText||'?'}`;
@@ -189,15 +186,10 @@ function parseFixedZones(texts){
  const monsterText = cleanOCR(texts.monsterRate || '');
  const timeText = cleanOCR(texts.playtime || '');
 
- // 等級：優先抓右側 Lv，抓不到再抓底部 Lv
+ // 等級：只抓紅框固定 Lv 區，不從其他數字亂猜
  let level =
    getLevelFromText(levelExpText) ||
    getLevelFromText(bottomLevelText);
-
- // 有些 OCR 只會讀到 106，沒有 Lv；因為這些區塊是固定等級區，所以可接受 2~3 位數
- if(!level){
-   level = firstReasonableLevel(levelExpText) || firstReasonableLevel(bottomLevelText);
- }
 
  // EXP：右側通常有兩個百分比：上線前與目前
  let expList = getPercents(levelExpText);
@@ -230,31 +222,57 @@ function parseFixedZones(texts){
  const hours = parsedTime.hours;
  const playtimeText = parsedTime.text;
 
- // 怪物數數值：這是遊戲已經算好的數值，不要亂猜
- // 使用者可選：每分鐘 / 每小時 / 總怪物數
- const monsterNumber = firstNumber(monsterText);
- const monsterMode = document.getElementById('monsterMode')?.value || 'minute';
+ // 怪物數：自動判斷，不讓玩家選
+ // 規則：
+ // 有小數 → 每分鐘怪物數（例如 106.6）
+ // 大整數 → 總怪物數（例如 49440）
+ const rawMonsterText = String(monsterText || '');
+ const monsterNumber = firstNumber(rawMonsterText);
 
  let monsters = 0;
  let monsterPerMinuteFromOCR = null;
  let monsterPerHourFromOCR = null;
 
  if(isFinite(monsterNumber)){
-   if(monsterMode === 'minute'){
+
+   // 有小數：代表遊戲已經算好的「每分鐘怪物數」
+   if(/[\\.,]/.test(rawMonsterText)){
+
      monsterPerMinuteFromOCR = monsterNumber;
      monsterPerHourFromOCR = monsterNumber * 60;
-     if(hours) monsters = monsterPerHourFromOCR * hours;
-   }
 
-   if(monsterMode === 'hour'){
-     monsterPerHourFromOCR = monsterNumber;
-     monsterPerMinuteFromOCR = monsterNumber / 60;
-     if(hours) monsters = monsterNumber * hours;
-   }
+     if(hours){
+       monsters = monsterPerHourFromOCR * hours;
+     }
 
-   if(monsterMode === 'total'){
+   }else{
+
+     // 沒小數：當總怪物數
      monsters = monsterNumber;
+
+     // 用上線時間反推
+     if(hours && monsters > 0){
+       monsterPerHourFromOCR = monsters / hours;
+       monsterPerMinuteFromOCR = monsterPerHourFromOCR / 60;
+     }
+
    }
+
+ }
+
+ if(!level){
+   return {
+     ok:false,
+     reason:'固定 Lv 區塊找不到等級，請手動輸入等級',
+     level,
+     current,
+     before,
+     hours,
+     monsters,
+     monsterPerMinuteFromOCR,
+     monsterPerHourFromOCR,
+     playtimeText
+   };
  }
 
  if(!isFinite(current) || !isFinite(before)){
@@ -311,20 +329,26 @@ function cleanOCR(t){
 }
 
 function getLevelFromText(t){
- const m = String(t).match(/L\s*v?\s*\.?\s*(\d{1,3})/i);
- if(!m) return null;
- const n = Number(m[1]);
- return n>=1 && n<=250 ? n : null;
+ const s = String(t || '').replace(/[Oo]/g,'0');
+
+ // 只接受明確的 Lv.xxx / LV xxx / L v xxx
+ const matches = s.match(/L\s*v?\s*\.?\s*(\d{1,3})/gi) || [];
+
+ const candidates = matches
+   .map(x => {
+     const m = x.match(/\d{1,3}/);
+     return m ? Number(m[0]) : null;
+   })
+   .filter(n => isFinite(n) && n >= 1 && n <= 250);
+
+ if(!candidates.length) return null;
+
+ // 同一區可能出現兩個 Lv.106，取第一個即可
+ return candidates[0];
 }
 
+// 等級不要再用純數字猜，避免 319 / 320 / 道具數量 / Stage 被當等級
 function firstReasonableLevel(t){
- const nums = String(t).match(/\b\d{2,3}\b/g) || [];
- for(const x of nums){
-   const n = Number(x);
-   if(n>=1 && n<=250 && ![12,13,14,15,16,20,28,49,65,80].includes(n)){
-     return n;
-   }
- }
  return null;
 }
 
