@@ -13,8 +13,6 @@ body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,"Not
 
 <body>
 <div class="container">
-
-<a href="index.html" class="homeBtn">← 回首頁</a>
 <h2>掛機效率分析器</h2>
 
 <div class="card upload" onclick="upload.click()">
@@ -248,67 +246,9 @@ function toggleDebug(){debugBox.style.display=debugBox.style.display==='block'?'
     });
   }
 
-  function addPanel(key, name, panel, rx, ry, rw, rh, scale, extra = {}) {
-    const x = panel.x + panel.w * rx;
-    const y = panel.y + panel.h * ry;
-    const w = panel.w * rw;
-    const h = panel.h * rh;
-    add(key, name, x, y, w, h, scale, extra);
-  }
+  // 固定 UI 區塊，不跑全圖，不抓道具列表。
+  // 等級自動辨識：右側白字 Lv、右側綠字 Lv、底部 Lv，多區域交叉驗證。
 
-  const panel = findBattlePanel(img);
-
-  if (panel) {
-    // 自動定位成功：以下都用黑框面板內的相對位置，不怕 UI 微偏移
-    addPanel("battleLabel", "戰鬥狀況文字", panel, 0.04, 0.18, 0.70, 0.18, 8, {
-      lang: "chi_tra+eng",
-      noWhitelist: true,
-      mode: "normal"
-    });
-
-    addPanel("monsterValue", "怪物數值", panel, 0.72, 0.18, 0.25, 0.18, 12, {
-      whitelist: "0123456789.,"
-    });
-
-    addPanel("playtime", "上線時間", panel, 0.02, 0.45, 0.45, 0.22, 10, {
-      whitelist: "0123456789:"
-    });
-
-    addPanel("rightLevelExp", "右側等級EXP", panel, 0.50, 0.43, 0.48, 0.27, 12, {
-      whitelist: "0123456789.,:%LvV()>"
-    });
-
-    // 右側等級寬抓
-    addPanel("levelRightWideNormal", "右側等級寬正常", panel, 0.50, 0.43, 0.48, 0.15, 18, {
-      mode: "normal",
-      whitelist: "0123456789LvV.>"
-    });
-
-    addPanel("levelRightWideBW", "右側等級寬黑白", panel, 0.50, 0.43, 0.48, 0.15, 20, {
-      mode: "threshold",
-      whitelist: "0123456789LvV.>"
-    });
-
-    // 底部 EXP 還是以整張圖底部為準
-    add("bottomExp", "底部EXP", 0.000, 0.935, 0.360, 0.055, 10, {
-      whitelist: "0123456789.,:%EXP"
-    });
-
-    // 底部 Lv 備援
-    add("levelBottomWideNormal", "底部等級寬正常", 0.385, 0.735, 0.180, 0.095, 20, {
-      mode: "normal",
-      whitelist: "0123456789LvV."
-    });
-
-    add("levelBottomWideBW", "底部等級寬黑白", 0.385, 0.735, 0.180, 0.095, 22, {
-      mode: "threshold",
-      whitelist: "0123456789LvV."
-    });
-
-    return list;
-  }
-
-  // 找不到黑框才退回固定座標
   add("battleLabel", "戰鬥狀況文字", 0.605, 0.240, 0.300, 0.065, 8, {
     lang: "chi_tra+eng",
     noWhitelist: true,
@@ -324,13 +264,14 @@ function toggleDebug(){debugBox.style.display=debugBox.style.display==='block'?'
   });
 
   add("rightLevelExp", "右側等級EXP", 0.780, 0.300, 0.215, 0.130, 12, {
-    whitelist: "0123456789.,:%LvV()>"
+    whitelist: "0123456789.,:%LvV()"
   });
 
   add("bottomExp", "底部EXP", 0.000, 0.935, 0.360, 0.055, 10, {
     whitelist: "0123456789.,:%EXP"
   });
 
+  // 右側整排 Lv.106 >> Lv.106：寬抓，讓 OCR 有上下文
   add("levelRightWideNormal", "右側等級寬正常", 0.800, 0.312, 0.190, 0.090, 18, {
     mode: "normal",
     whitelist: "0123456789LvV.>"
@@ -341,6 +282,29 @@ function toggleDebug(){debugBox.style.display=debugBox.style.display==='block'?'
     whitelist: "0123456789LvV.>"
   });
 
+  // 右側白字 Lv
+  add("levelRightLeftNormal", "右側白字Lv", 0.830, 0.320, 0.095, 0.070, 22, {
+    mode: "normal",
+    whitelist: "0123456789LvV."
+  });
+
+  add("levelRightLeftBW", "右側白字Lv黑白", 0.830, 0.320, 0.095, 0.070, 24, {
+    mode: "threshold",
+    whitelist: "0123456789LvV."
+  });
+
+  // 右側綠字 Lv
+  add("levelRightGreenNormal", "右側綠字Lv", 0.900, 0.320, 0.095, 0.070, 22, {
+    mode: "normal",
+    whitelist: "0123456789LvV."
+  });
+
+  add("levelRightGreenBW", "右側綠字Lv黑白", 0.900, 0.320, 0.095, 0.070, 24, {
+    mode: "threshold",
+    whitelist: "0123456789LvV."
+  });
+
+  // 底部角色等級：較寬抓，避免只抓到 1
   add("levelBottomWideNormal", "底部等級寬正常", 0.385, 0.735, 0.180, 0.095, 20, {
     mode: "normal",
     whitelist: "0123456789LvV."
@@ -352,93 +316,6 @@ function toggleDebug(){debugBox.style.display=debugBox.style.display==='block'?'
   });
 
   return list;
-}
-
-function findBattlePanel(img) {
-  // 掃描右半邊，找深色半透明矩形面板。
-  // 回傳比例座標：{x,y,w,h}，全部都是 0~1。
-  const c = document.createElement("canvas");
-  const maxW = 320;
-  const scale = maxW / img.width;
-  c.width = maxW;
-  c.height = Math.round(img.height * scale);
-
-  const ctx = c.getContext("2d");
-  ctx.drawImage(img, 0, 0, c.width, c.height);
-
-  const data = ctx.getImageData(0, 0, c.width, c.height).data;
-  const W = c.width;
-  const H = c.height;
-
-  const xStart = Math.floor(W * 0.50);
-  const xEnd = Math.floor(W * 0.99);
-  const yStart = Math.floor(H * 0.08);
-  const yEnd = Math.floor(H * 0.55);
-
-  function isDark(x, y) {
-    const i = (y * W + x) * 4;
-    const r = data[i], g = data[i+1], b = data[i+2];
-    const bright = (r + g + b) / 3;
-    return bright < 95;
-  }
-
-  let best = null;
-
-  // 用滑動視窗找暗色密度最高的大片區域
-  const candidates = [
-    {w:0.38,h:0.28},
-    {w:0.40,h:0.32},
-    {w:0.42,h:0.35},
-    {w:0.36,h:0.30}
-  ];
-
-  for (const size of candidates) {
-    const winW = Math.floor(W * size.w);
-    const winH = Math.floor(H * size.h);
-    const stepX = Math.max(4, Math.floor(W * 0.015));
-    const stepY = Math.max(4, Math.floor(H * 0.015));
-
-    for (let y = yStart; y + winH < yEnd; y += stepY) {
-      for (let x = xStart; x + winW < xEnd; x += stepX) {
-        let dark = 0;
-        let total = 0;
-
-        // 取樣，不用每點都掃
-        for (let yy = y; yy < y + winH; yy += 4) {
-          for (let xx = x; xx < x + winW; xx += 4) {
-            total++;
-            if (isDark(xx, yy)) dark++;
-          }
-        }
-
-        const density = dark / total;
-
-        // 自動狩獵面板會是大量暗色，但不是全黑
-        if (density > 0.42) {
-          const score = density;
-
-          if (!best || score > best.score) {
-            best = {x, y, w:winW, h:winH, score};
-          }
-        }
-      }
-    }
-  }
-
-  if (!best) return null;
-
-  // 稍微放大面板，避免切到字
-  let x = Math.max(0, best.x - Math.floor(W * 0.015));
-  let y = Math.max(0, best.y - Math.floor(H * 0.015));
-  let w = Math.min(W - x, best.w + Math.floor(W * 0.030));
-  let h = Math.min(H - y, best.h + Math.floor(H * 0.030));
-
-  return {
-    x: x / W,
-    y: y / H,
-    w: w / W,
-    h: h / H
-  };
 }
 
 function crop(img, x, y, w, h, scale, mode = "threshold") {
