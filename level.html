@@ -1,1 +1,220 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maple Idle 升級計算器</title>
 
+<style>
+body{
+margin:0;
+padding:24px;
+background:#0f172a;
+color:white;
+font-family:Arial,"Noto Sans TC",sans-serif;
+}
+
+.wrap{
+max-width:900px;
+margin:auto;
+background:rgba(255,255,255,.05);
+backdrop-filter:blur(18px);
+border:1px solid rgba(255,255,255,.08);
+border-radius:28px;
+padding:28px;
+box-shadow:0 20px 80px rgba(0,0,0,.45);
+}
+
+h1{
+margin:0;
+font-size:34px;
+}
+
+.sub{
+margin:8px 0 18px;
+color:#cbd5e1;
+line-height:1.7;
+}
+
+.back{
+display:inline-block;
+margin-bottom:20px;
+text-decoration:none;
+background:#1e293b;
+color:white;
+padding:12px 18px;
+border-radius:14px;
+font-weight:800;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:14px;
+}
+
+.box{
+background:rgba(255,255,255,.06);
+border:1px solid rgba(255,255,255,.1);
+border-radius:18px;
+padding:16px;
+}
+
+label{
+font-size:14px;
+font-weight:900;
+display:block;
+margin-bottom:8px;
+}
+
+input{
+width:100%;
+box-sizing:border-box;
+border:1px solid rgba(255,255,255,.15);
+border-radius:14px;
+padding:13px;
+font-size:16px;
+background:rgba(255,255,255,.08);
+color:white;
+outline:none;
+}
+
+button{
+width:100%;
+margin-top:18px;
+border:0;
+border-radius:18px;
+padding:17px;
+background:linear-gradient(135deg,#06b6d4,#3b82f6);
+color:white;
+font-size:19px;
+font-weight:900;
+cursor:pointer;
+}
+
+.result{
+margin-top:20px;
+background:rgba(6,182,212,.12);
+border:1px solid rgba(103,232,249,.35);
+border-radius:22px;
+padding:22px;
+}
+
+.big{
+font-size:38px;
+font-weight:900;
+color:#67e8f9;
+margin:8px 0;
+}
+
+.details{
+line-height:1.9;
+color:#dbeafe;
+}
+
+@media(max-width:700px){
+.grid{
+grid-template-columns:1fr;
+}
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<a class="back" href="index.html">← 回首頁</a>
+
+<h1>📊 Maple Idle 升級計算器</h1>
+
+<p class="sub">
+估算楓之谷 Idle 掛機多久升級
+</p>
+
+<div class="grid">
+
+<div class="box">
+<label>目前經驗 %</label>
+<input id="current" type="number" value="34.159">
+</div>
+
+<div class="box">
+<label>目標經驗 %</label>
+<input id="target" type="number" value="100">
+</div>
+
+<div class="box">
+<label>掛機前經驗 %</label>
+<input id="before" type="number" value="32.453">
+</div>
+
+<div class="box">
+<label>掛機後經驗 %</label>
+<input id="after" type="number" value="34.159">
+</div>
+
+<div class="box">
+<label>掛機時間（小時）</label>
+<input id="hours" type="number" value="8.43">
+</div>
+
+<div class="box">
+<label>每日掛機時數</label>
+<input id="daily" type="number" value="24">
+</div>
+
+</div>
+
+<button onclick="calc()">計算升級時間</button>
+
+<div class="result">
+<div>預估剩餘時間</div>
+<div class="big" id="main">計算中...</div>
+<div class="details" id="detail"></div>
+</div>
+
+</div>
+
+<script>
+
+function calc(){
+
+const current=Number(document.getElementById('current').value);
+const target=Number(document.getElementById('target').value);
+const before=Number(document.getElementById('before').value);
+const after=Number(document.getElementById('after').value);
+const hours=Number(document.getElementById('hours').value);
+const daily=Number(document.getElementById('daily').value);
+
+const gain=after-before;
+const perHour=gain/hours;
+const remain=target-current;
+
+if(perHour<=0){
+document.getElementById('main').innerText='資料錯誤';
+return;
+}
+
+const needHours=remain/perHour;
+const days=Math.floor(needHours/daily);
+const remainHours=(needHours-days*daily).toFixed(1);
+
+document.getElementById('main').innerText=
+`約 ${days} 天 ${remainHours} 小時`;
+
+document.getElementById('detail').innerHTML=
+`
+剩餘 ${remain.toFixed(3)}%<br>
+每小時約 ${perHour.toFixed(3)}%<br>
+每日約 ${(perHour*daily).toFixed(2)}%
+`;
+
+}
+
+calc();
+
+</script>
+
+</body>
+</html>
