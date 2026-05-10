@@ -7,12 +7,13 @@
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <style>
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,"Noto Sans TC",sans-serif;background:#f5f7fb;color:#111827}.container{max-width:480px;margin:auto;padding:20px}h2{text-align:center;margin:8px 0 18px}.card{background:#fff;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 4px 14px rgba(0,0,0,.06)}.upload{text-align:center;padding:18px;border:2px dashed #d1d5db;border-radius:12px;cursor:pointer;color:#374151;font-weight:700}#preview{display:none;width:100%;margin-top:12px;border-radius:10px}.progress{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden}.bar{height:100%;width:0%;background:linear-gradient(90deg,#4f7cff,#34c759);transition:.4s ease}.progress-text{font-size:12px;color:#666;text-align:right;margin-top:6px;line-height:1.5}.main{font-size:28px;font-weight:800;color:#4f7cff;text-align:center;margin:10px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.box{background:#f9fafb;padding:10px;border-radius:10px;text-align:center}.title{font-size:12px;color:#666}.value{font-size:16px;font-weight:700;word-break:break-word}button{width:100%;border:none;border-radius:12px;padding:13px;font-size:16px;font-weight:800;color:white;background:#4f7cff;cursor:pointer}.secondary{background:#6b7280;margin-top:10px}.manual{display:none}.manual label{display:block;margin-top:10px;font-size:12px;color:#666}.manual input,.manual select{width:100%;box-sizing:border-box;margin-top:6px;padding:11px;border-radius:10px;border:1px solid #d1d5db;font-size:15px}.debug{display:none;white-space:pre-wrap;font-size:12px;line-height:1.5;color:#6b7280;background:#f3f4f6;border-radius:10px;padding:10px}.warn{color:#d97706;font-size:12px;line-height:1.5;margin-top:8px}@media(max-width:480px){.container{padding:14px}.main{font-size:24px}}
+.homeBtn{display:inline-block;margin-bottom:14px;padding:10px 14px;background:#4f7cff;color:white;text-decoration:none;border-radius:10px;font-weight:700}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,"Noto Sans TC",sans-serif;background:#f5f7fb;color:#111827}.container{max-width:480px;margin:auto;padding:20px}h2{text-align:center;margin:8px 0 18px}.card{background:#fff;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 4px 14px rgba(0,0,0,.06)}.upload{text-align:center;padding:18px;border:2px dashed #d1d5db;border-radius:12px;cursor:pointer;color:#374151;font-weight:700}#preview{display:none;width:100%;margin-top:12px;border-radius:10px}.progress{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden}.bar{height:100%;width:0%;background:linear-gradient(90deg,#4f7cff,#34c759);transition:.4s ease}.progress-text{font-size:12px;color:#666;text-align:right;margin-top:6px;line-height:1.5}.main{font-size:28px;font-weight:800;color:#4f7cff;text-align:center;margin:10px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.box{background:#f9fafb;padding:10px;border-radius:10px;text-align:center}.title{font-size:12px;color:#666}.value{font-size:16px;font-weight:700;word-break:break-word}button{width:100%;border:none;border-radius:12px;padding:13px;font-size:16px;font-weight:800;color:white;background:#4f7cff;cursor:pointer}.secondary{background:#6b7280;margin-top:10px}.manual{display:none}.manual label{display:block;margin-top:10px;font-size:12px;color:#666}.manual input,.manual select{width:100%;box-sizing:border-box;margin-top:6px;padding:11px;border-radius:10px;border:1px solid #d1d5db;font-size:15px}.debug{display:none;white-space:pre-wrap;font-size:12px;line-height:1.5;color:#6b7280;background:#f3f4f6;border-radius:10px;padding:10px}.warn{color:#d97706;font-size:12px;line-height:1.5;margin-top:8px}@media(max-width:480px){.container{padding:14px}.main{font-size:24px}}
 </style>
 </head>
 
 <body>
 <div class="container">
+<a href="index.html" class="homeBtn">← 回首頁</a>
 <h2>掛機效率分析器</h2>
 
 <div class="card upload" onclick="upload.click()">
@@ -73,7 +74,7 @@ async function run(file){
     for(let i=0;i<zones.length;i++){
       const z=zones[i];setStatus(`辨識 ${z.name}...`,8+Math.round((i/zones.length)*70));
       const options={logger:m=>{if(m.status==='recognizing text'){const p=8+Math.round(((i+m.progress)/zones.length)*70);setStatus(`辨識 ${z.name}：${Math.round(m.progress*100)}%`,p)}}};
-      if(!z.noWhitelist)options.tessedit_char_whitelist='0123456789.,:%LvVPLAYTIMEEXP() ';
+      if(!z.noWhitelist)options.tessedit_char_whitelist=z.whitelist||'0123456789.,:%LvVPLAYTIMEEXP() ';
       const res=await Tesseract.recognize(z.canvas,z.lang||'eng',options);
       texts[z.key]=res.data.text;debug+=`\n\n[${z.name}]\n${res.data.text}`;
     }
@@ -86,20 +87,29 @@ async function run(file){
 
 function makeZones(img){
   const list=[];
-  function add(key,name,x,y,w,h,scale,extra={}){list.push({key,name,canvas:crop(img,x,y,w,h,scale),...extra})}
-  add('battleLabel','戰鬥狀況文字',0.600,0.245,0.310,0.060,8,{lang:'chi_tra+eng',noWhitelist:true});
-  add('monsterValue','怪物數值',0.900,0.250,0.090,0.065,12);
-  add('playtime','上線時間',0.595,0.318,0.175,0.080,10);
-  add('rightLevelExp','右側等級EXP',0.800,0.312,0.190,0.100,11);
-  add('bottomLevel','底部等級',0.390,0.745,0.160,0.075,11);
-  add('bottomExp','底部EXP',0.010,0.915,0.360,0.075,10);
+  function add(key,name,x,y,w,h,scale,extra={}){list.push({key,name,canvas:crop(img,x,y,w,h,scale,extra.mode||"threshold"),...extra})}
+
+  // 固定 UI 區塊，不跑全圖，不抓道具列表
+  add('battleLabel','戰鬥狀況文字',0.600,0.245,0.310,0.060,8,{lang:'chi_tra+eng',noWhitelist:true,mode:'normal'});
+  add('monsterValue','怪物數值',0.900,0.250,0.090,0.065,12,{whitelist:'0123456789.,'});
+  add('playtime','上線時間',0.595,0.318,0.175,0.080,10,{whitelist:'0123456789:'});
+  add('rightLevelExp','右側等級EXP',0.785,0.315,0.205,0.110,12,{whitelist:'0123456789.,:%LvV()>'});
+  add('bottomExp','底部EXP',0.000,0.935,0.360,0.055,10,{whitelist:'0123456789.,:%EXP'});
+
+  // 等級專用區塊：右側白字、右側綠字、底部 Lv
+  add('levelRightLeft','右側白字Lv',0.835,0.325,0.085,0.060,20,{mode:'normal',whitelist:'0123456789LvV.'});
+  add('levelRightGreen','右側綠字Lv',0.910,0.325,0.085,0.060,20,{mode:'normal',whitelist:'0123456789LvV.'});
+  add('levelRightGreenBW','右側綠字Lv黑白',0.910,0.325,0.085,0.060,22,{mode:'threshold',whitelist:'0123456789LvV.'});
+  add('levelBottom','底部Lv',0.420,0.770,0.085,0.060,20,{mode:'normal',whitelist:'0123456789LvV.'});
+  add('levelBottomBW','底部Lv黑白',0.420,0.770,0.085,0.060,22,{mode:'threshold',whitelist:'0123456789LvV.'});
+
   return list;
 }
 
-function crop(img,x,y,w,h,scale){
+function crop(img,x,y,w,h,scale,mode='threshold'){
   const canvas=document.createElement('canvas');const sx=img.width*x,sy=img.height*y,sw=img.width*w,sh=img.height*h;
   canvas.width=Math.max(1,Math.round(sw*scale));canvas.height=Math.max(1,Math.round(sh*scale));
-  const ctx=canvas.getContext('2d');ctx.drawImage(img,sx,sy,sw,sh,0,0,canvas.width,canvas.height);
+  const ctx=canvas.getContext('2d');ctx.drawImage(img,sx,sy,sw,sh,0,0,canvas.width,canvas.height);if(mode==='normal')return canvas;
   const imageData=ctx.getImageData(0,0,canvas.width,canvas.height),d=imageData.data;
   for(let i=0;i<d.length;i+=4){const gray=d[i]*.299+d[i+1]*.587+d[i+2]*.114;const v=gray>125?255:0;d[i]=d[i+1]=d[i+2]=v}
   ctx.putImageData(imageData,0,0);return canvas;
@@ -110,9 +120,16 @@ function parseFixedUI(texts){
   const monsterText=cleanText(texts.monsterValue||'');
   const playText=cleanText(texts.playtime||'');
   const rightLevelExp=cleanText(texts.rightLevelExp||'');
-  const bottomLevel=cleanText(texts.bottomLevel||'');
   const bottomExp=cleanText(texts.bottomExp||'');
-  const level=getLevel(rightLevelExp)||getLevel(bottomLevel);
+  const levelTexts=[
+    texts.levelRightLeft,
+    texts.levelRightGreen,
+    texts.levelRightGreenBW,
+    texts.levelBottom,
+    texts.levelBottomBW,
+    texts.rightLevelExp
+  ].map(cleanText);
+  const level=chooseBestLevel(levelTexts);
   const rightPercents=getPercents(rightLevelExp),bottomPercents=getPercents(bottomExp);
   let start=null,end=null;
   if(rightPercents.length>=2){start=rightPercents[0];end=rightPercents[rightPercents.length-1]}
@@ -200,99 +217,4 @@ function toggleManual(){manualBox.style.display=manualBox.style.display==='block
 function toggleDebug(){debugBox.style.display=debugBox.style.display==='block'?'none':'block'}
 </script>
 </body>
-</html>function makeZones(img) {
-  const list = [];
-
-  function add(key, name, x, y, w, h, scale, extra = {}) {
-    list.push({
-      key,
-      name,
-      canvas: crop(img, x, y, w, h, scale, extra.mode || "threshold"),
-      ...extra
-    });
-  }
-
-  // 固定 UI 區塊，不跑全圖，不抓道具列表。
-  // 以你提供的 1280x720 截圖校正座標。
-
-  add("battleLabel", "戰鬥狀況文字", 0.605, 0.240, 0.300, 0.065, 8, {
-    lang: "chi_tra+eng",
-    noWhitelist: true,
-    mode: "normal"
-  });
-
-  add("monsterValue", "怪物數值", 0.895, 0.245, 0.090, 0.070, 12, {
-    whitelist: "0123456789.,"
-  });
-
-  add("playtime", "上線時間", 0.595, 0.325, 0.180, 0.085, 10, {
-    whitelist: "0123456789:"
-  });
-
-  add("rightLevelExp", "右側等級EXP", 0.785, 0.315, 0.205, 0.110, 12, {
-    whitelist: "0123456789.,:%LvV()"
-  });
-
-  add("bottomExp", "底部EXP", 0.000, 0.935, 0.360, 0.055, 10, {
-    whitelist: "0123456789.,:%EXP"
-  });
-
-  // 等級專用：右側白字 Lv、右側綠字 Lv、底部 Lv
-  add("levelRightLeft", "右側白字Lv", 0.835, 0.325, 0.085, 0.060, 20, {
-    mode: "normal",
-    whitelist: "0123456789LvV."
-  });
-
-  add("levelRightGreen", "右側綠字Lv", 0.910, 0.325, 0.085, 0.060, 20, {
-    mode: "normal",
-    whitelist: "0123456789LvV."
-  });
-
-  add("levelRightGreenBW", "右側綠字Lv黑白", 0.910, 0.325, 0.085, 0.060, 22, {
-    mode: "threshold",
-    whitelist: "0123456789LvV."
-  });
-
-  add("levelBottom", "底部Lv", 0.420, 0.770, 0.085, 0.060, 20, {
-    mode: "normal",
-    whitelist: "0123456789LvV."
-  });
-
-  add("levelBottomBW", "底部Lv黑白", 0.420, 0.770, 0.085, 0.060, 22, {
-    mode: "threshold",
-    whitelist: "0123456789LvV."
-  });
-
-  return list;
-}
-
-function crop(img, x, y, w, h, scale, mode = "threshold") {
-  const canvas = document.createElement("canvas");
-  const sx = img.width * x;
-  const sy = img.height * y;
-  const sw = img.width * w;
-  const sh = img.height * h;
-
-  canvas.width = Math.max(1, Math.round(sw * scale));
-  canvas.height = Math.max(1, Math.round(sh * scale));
-
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-
-  if (mode === "normal") return canvas;
-
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const d = imageData.data;
-
-  for (let i = 0; i < d.length; i += 4) {
-    const gray = d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114;
-    const v = gray > 125 ? 255 : 0;
-    d[i] = v;
-    d[i+1] = v;
-    d[i+2] = v;
-  }
-
-  ctx.putImageData(imageData, 0, 0);
-  return canvas;
-}
-
+</html>
