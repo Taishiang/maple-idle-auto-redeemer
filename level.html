@@ -5,535 +5,738 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Maple Idle 升級分析器</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
 <style>
-body{margin:0;min-height:100vh;background:#0f172a;color:white;font-family:Arial,"Noto Sans TC",sans-serif;display:flex;align-items:center;justify-content:center;padding:18px}
-.card{width:100%;max-width:760px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:28px;padding:30px;text-align:center;box-shadow:0 20px 80px rgba(0,0,0,.45)}
-h1{font-size:32px;margin:0}.sub{color:#cbd5e1;line-height:1.8;margin:16px 0 24px}.back{display:inline-block;margin-bottom:22px;color:white;text-decoration:none;background:#1e293b;padding:12px 18px;border-radius:14px;font-weight:800}
-input,select{width:100%;padding:15px;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);color:white;font-size:16px;box-sizing:border-box;margin-top:10px}
-button{width:100%;margin-top:16px;border:0;border-radius:18px;padding:17px;font-size:19px;font-weight:900;color:white;background:linear-gradient(135deg,#06b6d4,#3b82f6);cursor:pointer}
-.preview{display:none;width:100%;max-height:360px;object-fit:contain;margin-top:18px;border-radius:18px}.status{margin-top:18px;color:#facc15;line-height:1.8}
-.result{margin-top:22px;padding:24px;border-radius:24px;background:rgba(6,182,212,.14);border:1px solid rgba(103,232,249,.35)}.big{font-size:42px;font-weight:900;color:#67e8f9;margin-top:10px}
-.detail{margin-top:14px;color:#dbeafe;line-height:1.9;font-size:15px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.manual{display:none;margin-top:18px;padding:16px;border-radius:18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);text-align:left}.manual label{font-size:13px;color:#cbd5e1}.debug{margin-top:18px;text-align:left;background:rgba(0,0,0,.25);border-radius:16px;padding:14px;color:#94a3b8;font-size:13px;line-height:1.6;display:none;white-space:pre-wrap}.smallBtn{background:#334155;font-size:14px;padding:12px}.warn{color:#facc15}.ok{color:#86efac}@media(max-width:560px){.card{padding:22px}.grid{grid-template-columns:1fr}.big{font-size:34px}}
+body{
+  margin:0;
+  min-height:100vh;
+  background:#0f172a;
+  color:white;
+  font-family:Arial,"Noto Sans TC",sans-serif;
+  padding:18px;
+}
+.card{
+  width:100%;
+  max-width:760px;
+  margin:auto;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:28px;
+  padding:30px;
+  text-align:center;
+  box-shadow:0 20px 80px rgba(0,0,0,.45);
+}
+h1{font-size:32px;margin:0}
+.sub{color:#cbd5e1;line-height:1.8;margin:16px 0 24px}
+.back{
+  display:inline-block;
+  margin-bottom:22px;
+  color:white;
+  text-decoration:none;
+  background:#1e293b;
+  padding:12px 18px;
+  border-radius:14px;
+  font-weight:800;
+}
+input,select{
+  width:100%;
+  padding:15px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.08);
+  color:white;
+  font-size:16px;
+  box-sizing:border-box;
+  margin-top:10px;
+}
+button{
+  width:100%;
+  margin-top:16px;
+  border:0;
+  border-radius:18px;
+  padding:17px;
+  font-size:19px;
+  font-weight:900;
+  color:white;
+  background:linear-gradient(135deg,#06b6d4,#3b82f6);
+  cursor:pointer;
+}
+.preview{
+  display:none;
+  width:100%;
+  max-height:360px;
+  object-fit:contain;
+  margin-top:18px;
+  border-radius:18px;
+}
+.status{
+  margin-top:18px;
+  color:#facc15;
+  line-height:1.8;
+}
+.result{
+  margin-top:22px;
+  padding:24px;
+  border-radius:24px;
+  background:rgba(6,182,212,.14);
+  border:1px solid rgba(103,232,249,.35);
+}
+.big{
+  font-size:42px;
+  font-weight:900;
+  color:#67e8f9;
+  margin-top:10px;
+}
+.detail{
+  margin-top:14px;
+  color:#dbeafe;
+  line-height:1.9;
+  font-size:15px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+}
+.manual{
+  display:none;
+  margin-top:18px;
+  padding:16px;
+  border-radius:18px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  text-align:left;
+}
+.manual label{
+  font-size:13px;
+  color:#cbd5e1;
+}
+.debug{
+  margin-top:18px;
+  text-align:left;
+  background:rgba(0,0,0,.25);
+  border-radius:16px;
+  padding:14px;
+  color:#94a3b8;
+  font-size:13px;
+  line-height:1.6;
+  display:none;
+  white-space:pre-wrap;
+}
+.smallBtn{
+  background:#334155;
+  font-size:14px;
+  padding:12px;
+}
+.warn{color:#facc15}
+.ok{color:#86efac}
+@media(max-width:560px){
+  .card{padding:22px}
+  .grid{grid-template-columns:1fr}
+  .big{font-size:34px}
+}
 </style>
 </head>
+
 <body>
 <div class="card">
 <a class="back" href="index.html">← 回首頁</a>
+
 <h1>📊 Maple Idle 升級分析器</h1>
-<div class="sub">上傳「自動狩獵概況」截圖，用 <b>上線時間 + EXP 增加量</b> 計算升級時間。</div>
+
+<div class="sub">
+上傳「自動狩獵概況」截圖，用 <b>上線時間 + EXP 增加量</b> 計算升級時間。
+</div>
+
 <input type="file" id="imageUpload" accept="image/*">
-
-
 <img id="preview" class="preview">
+
 <button onclick="analyzeImage()">開始分析圖片</button>
+
 <div class="status" id="status">請先上傳遊戲截圖</div>
+
 <div class="result">
   <div>預估剩餘升級時間</div>
   <div class="big" id="main">尚未分析</div>
   <div class="detail" id="detail"></div>
 </div>
+
 <button class="smallBtn" onclick="toggleManual()">手動修正 / 分鐘小時模式</button>
+
 <div class="manual" id="manual">
   <div class="grid">
     <div><label>等級</label><input id="mLevel" placeholder="例如 106"></div>
-    <div><label>目前 EXP %</label><input id="mCurrent" placeholder="例如 34.714"></div>
+    <div><label>目前 EXP %</label><input id="mCurrent" placeholder="例如 34.862"></div>
     <div><label>上線前 EXP %</label><input id="mBefore" placeholder="例如 34.645"></div>
-    <div><label>上線時間</label><input id="mTime" placeholder="00:20:52 或 20分"></div>
-    <div><label>怪物總數</label><input id="mMonsters" placeholder="例如 2200"></div>
-    <div><label>自訂效率模式</label><select id="mMode"><option value="time">用上線時間計算</option><option value="hour">我直接輸入每小時%</option><option value="minute">我直接輸入每分鐘%</option></select></div>
+    <div><label>上線時間</label><input id="mTime" placeholder="01:04:19 或 64分"></div>
+    <div><label>怪物數值</label><input id="mMonsters" placeholder="例如 106.6 或 49440"></div>
+    <div>
+      <label>怪物數值類型</label>
+      <select id="mMonsterMode">
+        <option value="auto">自動判斷</option>
+        <option value="minute">每分鐘</option>
+        <option value="hour">每小時</option>
+        <option value="total">總怪物數</option>
+      </select>
+    </div>
+    <div>
+      <label>EXP 效率模式</label>
+      <select id="mMode">
+        <option value="time">用上線時間計算</option>
+        <option value="hour">我直接輸入每小時%</option>
+        <option value="minute">我直接輸入每分鐘%</option>
+      </select>
+    </div>
     <div><label>每小時/每分鐘 EXP%</label><input id="mRate" placeholder="選自訂模式才填"></div>
   </div>
   <button onclick="analyzeManual()">套用手動資料</button>
 </div>
+
 <button class="smallBtn" onclick="copyResult()">一鍵複製結果</button>
 <button class="smallBtn" onclick="toggleDebug()">查看辨識文字</button>
 <div class="debug" id="debug"></div>
 </div>
+
 <script>
-let uploadedFile=null,lastText='',lastShare='';
-document.getElementById('imageUpload').addEventListener('change',e=>{
-  uploadedFile=e.target.files[0]; if(!uploadedFile)return;
-  const img=document.getElementById('preview'); img.src=URL.createObjectURL(uploadedFile); img.style.display='block';
+let uploadedFile=null;
+let lastShare='';
+
+const imageUpload=document.getElementById('imageUpload');
+
+imageUpload.addEventListener('change',e=>{
+  uploadedFile=e.target.files[0];
+  if(!uploadedFile)return;
+
+  const img=document.getElementById('preview');
+  img.src=URL.createObjectURL(uploadedFile);
+  img.style.display='block';
+
   document.getElementById('status').innerText='圖片已上傳，請按「開始分析圖片」';
 });
-function toggleDebug(){const b=document.getElementById('debug');b.style.display=b.style.display==='block'?'none':'block'}
-function toggleManual(){const b=document.getElementById('manual');b.style.display=b.style.display==='block'?'none':'block'}
+
+function toggleDebug(){
+  const b=document.getElementById('debug');
+  b.style.display=b.style.display==='block'?'none':'block';
+}
+
+function toggleManual(){
+  const b=document.getElementById('manual');
+  b.style.display=b.style.display==='block'?'none':'block';
+}
+
 async function analyzeImage(){
- if(!uploadedFile){alert('請先上傳圖片');return}
- const status=document.getElementById('status');
- status.innerText='辨識固定 UI 區塊中...';
-
- try{
-  const zones=await makeOCRCanvases(uploadedFile);
-  const texts={};
-  let debugText='';
-
-  for(let i=0;i<zones.length;i++){
-    const z=zones[i];
-    status.innerText=`辨識 ${z.name} ${i+1}/${zones.length}...`;
-
-    const result=await Tesseract.recognize(
-      z.canvas,
-      'eng',
-      {
-        tessedit_char_whitelist:'0123456789.,:%LvVPLAYTIMEEXP() ',
-        logger:m=>{
-          if(m.status==='recognizing text'){
-            status.innerText=`辨識 ${z.name}：${Math.round(m.progress*100)}%`;
-          }
-        }
-      }
-    );
-
-    texts[z.key]=result.data.text;
-    debugText += `\n\n[${z.name}]\n${result.data.text}`;
-  }
-
-  lastText=debugText;
-  document.getElementById('debug').innerText=debugText;
-
-  const data=parseFixedZones(texts);
-
-  if(!data.ok){
-    status.innerText='辨識不完整，請用手動修正';
-    document.getElementById('main').innerText='需要修正';
-    document.getElementById('detail').innerHTML=data.reason;
-    document.getElementById('manual').style.display='block';
-    fillManual(data);
+  if(!uploadedFile){
+    alert('請先上傳圖片');
     return;
   }
 
-  showResult(data,'OCR固定UI');
- }catch(err){
-  console.error(err);
-  status.innerText='分析失敗，請重新上傳較清楚的圖片';
-  document.getElementById('main').innerText='分析失敗';
-  document.getElementById('manual').style.display='block';
- }
+  const status=document.getElementById('status');
+  status.innerText='辨識固定 UI 區塊中...';
+
+  try{
+    const zones=await makeOCRCanvases(uploadedFile);
+    const texts={};
+    let debugText='';
+
+    for(let i=0;i<zones.length;i++){
+      const z=zones[i];
+
+      status.innerText=`辨識 ${z.name} ${i+1}/${zones.length}...`;
+
+      const result=await Tesseract.recognize(
+        z.canvas,
+        'eng',
+        {
+          tessedit_char_whitelist:'0123456789.,:%LvVPLAYTIMEEXP() ',
+          logger:m=>{
+            if(m.status==='recognizing text'){
+              status.innerText=`辨識 ${z.name}：${Math.round(m.progress*100)}%`;
+            }
+          }
+        }
+      );
+
+      texts[z.key]=result.data.text;
+      debugText+=`\n\n[${z.name}]\n${result.data.text}`;
+    }
+
+    document.getElementById('debug').innerText=debugText;
+
+    const data=parseFixedZones(texts);
+
+    if(!data.ok){
+      status.innerText='辨識不完整，請用手動修正';
+      document.getElementById('main').innerText='需要修正';
+      document.getElementById('detail').innerHTML=data.reason;
+      document.getElementById('manual').style.display='block';
+      fillManual(data);
+      return;
+    }
+
+    showResult(data,'OCR固定UI');
+
+  }catch(err){
+    console.error(err);
+    status.innerText='分析失敗，請重新上傳較清楚的圖片';
+    document.getElementById('main').innerText='分析失敗';
+    document.getElementById('manual').style.display='block';
+  }
 }
 
-function fillManual(data){ if(!data)return; if(data.level) mLevel.value=data.level; if(data.current) mCurrent.value=data.current; if(data.before) mBefore.value=data.before; if(data.playtimeText) mTime.value=data.playtimeText; if(data.monsters) mMonsters.value=data.monsters; }
+function fillManual(data){
+  if(!data)return;
+  if(data.level) mLevel.value=data.level;
+  if(isFinite(data.current)) mCurrent.value=data.current;
+  if(isFinite(data.before)) mBefore.value=data.before;
+  if(data.playtimeText) mTime.value=data.playtimeText;
+  if(data.rawMonsterNumber) mMonsters.value=data.rawMonsterNumber;
+}
+
 function analyzeManual(){
- const mode=mMode.value; const level=num(mLevel.value); const current=num(mCurrent.value); const before=num(mBefore.value); const monsters=num(mMonsters.value)||0; const hours=parseTimeToHours(mTime.value);
- const rate=num(mRate.value);
- let data={ok:true,level:level||null,nextLevel:level?level+1:null,current,before,after:current,hours,monsters,monsterPerMinuteFromOCR:null,playtimeText:mTime.value||'手動'};
- if(mode==='hour'){data.manualPerHour=rate}else if(mode==='minute'){data.manualPerHour=rate*60}
- if(!isFinite(current)||current<0||current>100){alert('請輸入目前 EXP %');return}
- if(mode==='time' && (!isFinite(before)||!isFinite(hours)||hours<=0)){alert('請輸入上線前 EXP % 與上線時間');return}
- if(mode!=='time' && (!isFinite(rate)||rate<=0)){alert('請輸入每小時或每分鐘 EXP%');return}
- showResult(data,'手動');
+  const mode=mMode.value;
+  const level=num(mLevel.value);
+  const current=num(mCurrent.value);
+  const before=num(mBefore.value);
+  const hours=parseTimeToHours(mTime.value);
+  const rate=num(mRate.value);
+  const rawMonster=num(mMonsters.value);
+  const monsterMode=mMonsterMode.value;
+
+  if(!level||level<=0||level>250){
+    alert('請輸入正確等級');
+    return;
+  }
+
+  if(!isFinite(current)||current<0||current>100){
+    alert('請輸入目前 EXP %');
+    return;
+  }
+
+  if(mode==='time'&&(!isFinite(before)||!isFinite(hours)||hours<=0)){
+    alert('請輸入上線前 EXP % 與上線時間');
+    return;
+  }
+
+  if(mode!=='time'&&(!isFinite(rate)||rate<=0)){
+    alert('請輸入每小時或每分鐘 EXP%');
+    return;
+  }
+
+  const monsterData=normalizeMonster(rawMonster,monsterMode,hours);
+
+  const data={
+    ok:true,
+    level,
+    nextLevel:level+1,
+    current,
+    before,
+    after:current,
+    hours,
+    rawMonsterNumber:rawMonster,
+    monsters:monsterData.monsters,
+    monsterPerMinuteFromOCR:monsterData.monsterPerMinute,
+    monsterPerHourFromOCR:monsterData.monsterPerHour,
+    playtimeText:mTime.value||'手動'
+  };
+
+  if(mode==='hour') data.manualPerHour=rate;
+  if(mode==='minute') data.manualPerHour=rate*60;
+
+  showResult(data,'手動');
 }
+
 function showResult(data,source){
- const calc=calculate(data); document.getElementById('status').innerText='分析完成';
- document.getElementById('main').innerText=calc.timeText;
- const shortSample=data.hours && data.hours<0.5 ? '<br><span class="warn">提醒：樣本低於 30 分鐘，建議掛滿 1 小時以上會更準。</span>' : '';
- const lvText = data.level ? `${data.level} → ${data.level + 1}` : '? → ?';
- document.getElementById('detail').innerHTML=`
- 等級：<b>${lvText}</b><br>
- 目前 EXP：<b>${fmt(data.current)}%</b><br>
- 效率：約 <b>${fmt(calc.perHour,3)}% / 小時</b>，一天約 <b>${fmt(calc.perDay,2)}%</b><br>
- 上線時間：<b>${data.playtimeText||'?'}</b><br>
- ${data.monsters ? `總怪物：約 <b>${fmt(data.monsters,0)}</b> 隻<br>` : ''}
+  const calc=calculate(data);
+  document.getElementById('status').innerText='分析完成';
+  document.getElementById('main').innerText=calc.timeText;
+
+  const shortSample=data.hours&&data.hours<0.5
+    ? '<br><span class="warn">提醒：樣本低於 30 分鐘，建議掛滿 1 小時以上會更準。</span>'
+    : '';
+
+  const lvText=data.level?`${data.level} → ${data.level+1}`:'? → ?';
+
+  document.getElementById('detail').innerHTML=`
+    等級：<b>${lvText}</b><br>
+    目前 EXP：<b>${fmt(data.current)}%</b><br>
+    效率：約 <b>${fmt(calc.perHour,3)}% / 小時</b>，一天約 <b>${fmt(calc.perDay,2)}%</b><br>
+    上線時間：<b>${data.playtimeText||'?'}</b><br>
     每分鐘：約 <b>${fmt(calc.monsterPerMinute,1)}</b> 隻， 每小時：約 <b>${fmt(calc.monsterPerHour,0)}</b> 隻
- ${shortSample}
- `;
- lastShare=`Maple Idle 升級分析\n目前：${data.level && data.level <= 250 ? `Lv.${data.level} → Lv.${data.level + 1}` : 'Lv.?'} ${fmt(data.current)}%\n效率：約 ${fmt(calc.perHour,3)}%/小時\n預估升級：${calc.timeText}\n上線時間：${data.playtimeText||'?'}`;
- saveHistory(data,calc,source);
+    ${shortSample}
+  `;
+
+  lastShare=
+`Maple Idle 升級分析
+目前：Lv.${data.level} → Lv.${data.level+1} ${fmt(data.current)}%
+效率：約 ${fmt(calc.perHour,3)}%/小時
+預估升級：${calc.timeText}
+上線時間：${data.playtimeText||'?'}
+每分鐘：約 ${fmt(calc.monsterPerMinute,1)} 隻
+每小時：約 ${fmt(calc.monsterPerHour,0)} 隻`;
+
+  saveHistory(data,calc,source);
 }
-function loadImage(file){return new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(img);img.src=URL.createObjectURL(file)})}
+
+function loadImage(file){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>resolve(img);
+    img.src=URL.createObjectURL(file);
+  });
+}
+
 async function makeOCRCanvases(file){
- const img=await loadImage(file);
- const list=[];
+  const img=await loadImage(file);
+  const list=[];
 
- function add(key,name,x,y,w,h,scale){
-   list.push({
-     key,
-     name,
-     canvas:makeCanvas(img,img.width*x,img.height*y,img.width*w,img.height*h,scale)
-   });
- }
+  function add(key,name,x,y,w,h,scale){
+    list.push({
+      key,
+      name,
+      canvas:makeCanvas(img,img.width*x,img.height*y,img.width*w,img.height*h,scale)
+    });
+  }
 
- // UI 固定座標：只抓需要的區塊，不再搜尋獲得道具列表
- // 右側自動狩獵概況上方數字：每分鐘怪物 / 或目前怪物總數
- add('monsterRate','怪物數數值',0.915,0.265,0.075,0.060,12);
+  // 固定 UI 區塊，不跑全圖、不抓道具列表
+  // 以 16:9 手遊截圖為基準，模擬器與手機截圖都可用。
 
- // PLAYTIME
- add('playtime','上線時間',0.60,0.335,0.16,0.075,9);
+  // 右側黑框：怪物數值，只抓最右上的數字，不抓下面道具數。
+  add('monsterTop','怪物數值',0.905,0.235,0.080,0.060,12);
 
- // 右側等級 + EXP，包含 Lv.106、34.645%、34.862%
- add('levelExp','右側等級EXP',0.81,0.325,0.17,0.085,10);
+  // PLAYTIME
+  add('playtime','上線時間',0.595,0.320,0.170,0.080,10);
 
- // 底部角色等級，備援用
- add('bottomLevel','底部角色等級',0.405,0.760,0.12,0.055,10);
+  // 右側 Lv + EXP：Lv.106、34.645%、34.862%
+  add('rightLevelExp','右側等級EXP',0.805,0.315,0.180,0.095,11);
 
- // 底部目前 EXP，備援用
- add('bottomExp','底部目前EXP',0.02,0.925,0.33,0.055,9);
+  // 底部角色等級備援
+  add('bottomLevel','底部等級',0.405,0.755,0.135,0.060,11);
 
- return list;
+  // 底部目前 EXP 備援
+  add('bottomExp','底部EXP',0.015,0.925,0.340,0.060,10);
+
+  return list;
 }
+
 function makeCanvas(img,x,y,w,h,scale){
- const canvas=document.createElement('canvas'); canvas.width=w*scale; canvas.height=h*scale; const ctx=canvas.getContext('2d');
- ctx.drawImage(img,x,y,w,h,0,0,canvas.width,canvas.height);
- const imageData=ctx.getImageData(0,0,canvas.width,canvas.height),d=imageData.data;
- for(let i=0;i<d.length;i+=4){const gray=d[i]*.299+d[i+1]*.587+d[i+2]*.114; const high=gray>125?255:0; d[i]=d[i+1]=d[i+2]=high}
- ctx.putImageData(imageData,0,0); return canvas;
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.max(1,Math.round(w*scale));
+  canvas.height=Math.max(1,Math.round(h*scale));
+
+  const ctx=canvas.getContext('2d');
+  ctx.drawImage(img,x,y,w,h,0,0,canvas.width,canvas.height);
+
+  const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+  const d=imageData.data;
+
+  for(let i=0;i<d.length;i+=4){
+    const gray=d[i]*0.299+d[i+1]*0.587+d[i+2]*0.114;
+    const v=gray>125?255:0;
+    d[i]=v;
+    d[i+1]=v;
+    d[i+2]=v;
+  }
+
+  ctx.putImageData(imageData,0,0);
+  return canvas;
 }
 
 function parseFixedZones(texts){
- const levelExpText = cleanOCR(texts.levelExp || '');
- const bottomLevelText = cleanOCR(texts.bottomLevel || '');
- const bottomExpText = cleanOCR(texts.bottomExp || '');
- const monsterText = cleanOCR(texts.monsterRate || '');
- const timeText = cleanOCR(texts.playtime || '');
+  const rightLevelExp=cleanOCR(texts.rightLevelExp||'');
+  const bottomLevel=cleanOCR(texts.bottomLevel||'');
+  const bottomExp=cleanOCR(texts.bottomExp||'');
+  const playText=cleanOCR(texts.playtime||'');
+  const monsterText=cleanOCR(texts.monsterTop||'');
 
- // 等級：只抓紅框固定 Lv 區，不從其他數字亂猜
- let level =
-   getLevelFromText(levelExpText) ||
-   getLevelFromText(bottomLevelText);
+  const level=getLevelFromText(rightLevelExp)||getLevelFromText(bottomLevel);
 
- // EXP：右側通常有兩個百分比：上線前與目前
- let expList = getPercents(levelExpText);
+  const rightPercents=getPercents(rightLevelExp);
+  const bottomPercents=getPercents(bottomExp);
 
- // 底部目前 EXP 備援
- const bottomPercents = getPercents(bottomExpText);
- if(bottomPercents.length){
-   const bottomCurrent = bottomPercents[bottomPercents.length-1];
-   if(!expList.some(x=>Math.abs(x-bottomCurrent)<0.02)){
-     expList.push(bottomCurrent);
-   }
- }
+  let before=null;
+  let current=null;
 
- expList = expList
-   .filter(x=>isFinite(x)&&x>=0&&x<=100)
-   .sort((a,b)=>a-b);
+  if(rightPercents.length>=2){
+    before=rightPercents[0];
+    current=rightPercents[rightPercents.length-1];
+  }else if(rightPercents.length===1&&bottomPercents.length){
+    before=rightPercents[0];
+    current=bottomPercents[bottomPercents.length-1];
+  }else if(bottomPercents.length>=1){
+    current=bottomPercents[bottomPercents.length-1];
+  }
 
- let before = null;
- let current = null;
+  if(isFinite(before)&&isFinite(current)&&before>current){
+    const t=before;
+    before=current;
+    current=t;
+  }
 
- if(expList.length >= 2){
-   before = expList[0];
-   current = expList[expList.length-1];
- }else if(expList.length === 1){
-   current = expList[0];
- }
+  const time=parsePlayTime(playText);
+  const hours=time.hours;
+  const playtimeText=time.text;
 
- // 上線時間
- const parsedTime = parsePlayTime(timeText);
- const hours = parsedTime.hours;
- const playtimeText = parsedTime.text;
+  const rawMonsterNumber=firstNumber(monsterText);
+  const monsterData=normalizeMonster(rawMonsterNumber,'auto',hours,monsterText);
 
- // 怪物數：自動判斷，不讓玩家選
- // 規則：
- // 有小數 → 每分鐘怪物數（例如 106.6）
- // 大整數 → 總怪物數（例如 49440）
- const rawMonsterText = String(monsterText || '');
- const monsterNumber = firstNumber(rawMonsterText);
+  if(!level){
+    return {
+      ok:false,
+      reason:'固定 Lv 區塊找不到等級，請手動輸入等級',
+      level,current,before,hours,
+      rawMonsterNumber,
+      monsters:monsterData.monsters,
+      monsterPerMinuteFromOCR:monsterData.monsterPerMinute,
+      monsterPerHourFromOCR:monsterData.monsterPerHour,
+      playtimeText
+    };
+  }
 
- let monsters = 0;
- let monsterPerMinuteFromOCR = null;
- let monsterPerHourFromOCR = null;
+  if(!isFinite(current)||!isFinite(before)){
+    return {
+      ok:false,
+      reason:'固定 EXP 區塊找不到上線前與目前 EXP，請手動修正',
+      level,current,before,hours,
+      rawMonsterNumber,
+      monsters:monsterData.monsters,
+      monsterPerMinuteFromOCR:monsterData.monsterPerMinute,
+      monsterPerHourFromOCR:monsterData.monsterPerHour,
+      playtimeText
+    };
+  }
 
- if(isFinite(monsterNumber)){
+  if(!isFinite(hours)||hours<=0){
+    return {
+      ok:false,
+      reason:'固定 PLAYTIME 區塊找不到上線時間，請手動修正',
+      level,current,before,hours,
+      rawMonsterNumber,
+      monsters:monsterData.monsters,
+      monsterPerMinuteFromOCR:monsterData.monsterPerMinute,
+      monsterPerHourFromOCR:monsterData.monsterPerHour,
+      playtimeText
+    };
+  }
 
-   // 有小數：代表遊戲已經算好的「每分鐘怪物數」
-   if(/[\\.,]/.test(rawMonsterText)){
-
-     monsterPerMinuteFromOCR = monsterNumber;
-     monsterPerHourFromOCR = monsterNumber * 60;
-
-     if(hours){
-       monsters = monsterPerHourFromOCR * hours;
-     }
-
-   }else{
-
-     // 沒小數：當總怪物數
-     monsters = monsterNumber;
-
-     // 用上線時間反推
-     if(hours && monsters > 0){
-       monsterPerHourFromOCR = monsters / hours;
-       monsterPerMinuteFromOCR = monsterPerHourFromOCR / 60;
-     }
-
-   }
-
- }
-
- if(!level){
-   return {
-     ok:false,
-     reason:'固定 Lv 區塊找不到等級，請手動輸入等級',
-     level,
-     current,
-     before,
-     hours,
-     monsters,
-     monsterPerMinuteFromOCR,
-     monsterPerHourFromOCR,
-     playtimeText
-   };
- }
-
- if(!isFinite(current) || !isFinite(before)){
-   return {
-     ok:false,
-     reason:'固定區塊找不到兩個 EXP 百分比',
-     level,
-     current,
-     before,
-     hours,
-     monsters,
-     monsterPerMinuteFromOCR,
-     monsterPerHourFromOCR,
-     playtimeText
-   };
- }
-
- if(!isFinite(hours) || hours <= 0){
-   return {
-     ok:false,
-     reason:'固定區塊找不到 PLAYTIME / 上線時間',
-     level,
-     current,
-     before,
-     hours,
-     monsters,
-     monsterPerMinuteFromOCR,
-     monsterPerHourFromOCR,
-     playtimeText
-   };
- }
-
- return {
-   ok:true,
-   level,
-   nextLevel:level ? level + 1 : null,
-   current,
-   before,
-   after:current,
-   hours,
-   monsters,
-   monsterPerMinuteFromOCR,
-   monsterPerHourFromOCR,
-   playtimeText
- };
+  return {
+    ok:true,
+    level,
+    nextLevel:level+1,
+    current,
+    before,
+    after:current,
+    hours,
+    rawMonsterNumber,
+    monsters:monsterData.monsters,
+    monsterPerMinuteFromOCR:monsterData.monsterPerMinute,
+    monsterPerHourFromOCR:monsterData.monsterPerHour,
+    playtimeText
+  };
 }
 
 function cleanOCR(t){
- return String(t||'')
-   .replace(/[，]/g,'.')
-   .replace(/[Oo]/g,'0')
-   .replace(/\s+/g,' ')
-   .trim();
+  return String(t||'')
+    .replace(/[，]/g,'.')
+    .replace(/[Oo]/g,'0')
+    .replace(/\s+/g,' ')
+    .trim();
 }
 
 function getLevelFromText(t){
- const s = String(t || '').replace(/[Oo]/g,'0');
+  const s=String(t||'').replace(/[Oo]/g,'0');
 
- // 只接受明確的 Lv.xxx / LV xxx / L v xxx
- const matches = s.match(/L\s*v?\s*\.?\s*(\d{1,3})/gi) || [];
+  // 只接受明確 Lv，不用純數字猜，避免 319 / 320 / Stage / 道具數。
+  const matches=s.match(/L\s*v?\s*\.?\s*(\d{1,3})/gi)||[];
 
- const candidates = matches
-   .map(x => {
-     const m = x.match(/\d{1,3}/);
-     return m ? Number(m[0]) : null;
-   })
-   .filter(n => isFinite(n) && n >= 1 && n <= 250);
+  const candidates=matches
+    .map(x=>{
+      const m=x.match(/\d{1,3}/);
+      return m?Number(m[0]):null;
+    })
+    .filter(n=>isFinite(n)&&n>=1&&n<=250);
 
- if(!candidates.length) return null;
-
- // 同一區可能出現兩個 Lv.106，取第一個即可
- return candidates[0];
-}
-
-// 等級不要再用純數字猜，避免 319 / 320 / 道具數量 / Stage 被當等級
-function firstReasonableLevel(t){
- return null;
+  return candidates.length?candidates[0]:null;
 }
 
 function getPercents(t){
- const arr = [];
- const matches = String(t).match(/\d{1,3}[\.,]\d{1,3}\s*%?/g) || [];
- matches.forEach(x=>{
-   const n = Number(x.replace('%','').replace(',','.').trim());
-   if(isFinite(n) && n>=0 && n<=100) arr.push(n);
- });
- return [...new Set(arr.map(x=>Number(x.toFixed(3))))];
+  const matches=String(t||'').match(/\d{1,3}[\.,]\d{1,3}\s*%?/g)||[];
+
+  const arr=matches
+    .map(x=>Number(x.replace('%','').replace(',','.').trim()))
+    .filter(x=>isFinite(x)&&x>=0&&x<=100)
+    .map(x=>Number(x.toFixed(3)));
+
+  return [...new Set(arr)].sort((a,b)=>a-b);
 }
 
 function parsePlayTime(t){
- const m = String(t).match(/(\d{1,3})[:：](\d{2})[:：](\d{2})/);
- if(!m) return {hours:null,text:''};
- const h=Number(m[1]), mi=Number(m[2]), s=Number(m[3]);
- return {
-   hours:h+mi/60+s/3600,
-   text:`${String(h).padStart(2,'0')}:${String(mi).padStart(2,'0')}:${String(s).padStart(2,'0')}`
- };
+  const m=String(t||'').match(/(\d{1,3})[:：](\d{2})[:：](\d{2})/);
+  if(!m)return{hours:null,text:''};
+
+  const h=Number(m[1]);
+  const mi=Number(m[2]);
+  const s=Number(m[3]);
+
+  return {
+    hours:h+mi/60+s/3600,
+    text:`${String(h).padStart(2,'0')}:${String(mi).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+  };
 }
 
 function firstNumber(t){
- const s = String(t||'').replace(/[Oo]/g,'0');
+  const s=String(t||'').replace(/[Oo]/g,'0');
 
- // 固定區塊若有小數，優先抓小數，例如 106.6
- const decimal = s.match(/\d{1,7}[\.,]\d+/);
- if(decimal) return Number(decimal[0].replace(',','.'));
+  const decimal=s.match(/\d{1,7}[\.,]\d+/);
+  if(decimal)return Number(decimal[0].replace(',','.'));
 
- const m = s.match(/\d{1,7}/);
- if(!m) return NaN;
- return Number(m[0].replace(',','.'));
+  const normal=s.match(/\d{1,7}/);
+  if(!normal)return NaN;
+
+  return Number(normal[0]);
 }
 
-function parseMapleText(text){
- const cleaned=text.replace(/[，]/g,'.').replace(/O/g,'0').replace(/o/g,'0').replace(/\s+/g,' ');
- let levels=[], lvPercents=[];
- const lvRe=/Lv\.?\s*(\d{1,3})[^0-9]{0,20}\(?\s*(\d{1,3}[\.,]\d{1,3})\s*%?\s*\)?/gi; let m;
- while((m=lvRe.exec(cleaned))!==null){levels.push(Number(m[1])); lvPercents.push(Number(m[2].replace(',','.')))}
- const allPerc=(cleaned.match(/\d{1,3}[\.,]\d{1,3}\s*%/g)||[]).map(x=>Number(x.replace('%','').replace(',','.'))).filter(x=>isFinite(x)&&x>=0&&x<=100);
- let before=null,current=null;
- if(lvPercents.length>=2){before=lvPercents[0];current=lvPercents[lvPercents.length-1]}
- else if(allPerc.length>=2){
-   // 只取最接近的一組百分比，避免 3.645 / 34.714 誤判
-   let best=null;
-   for(let i=0;i<allPerc.length;i++)for(let j=i+1;j<allPerc.length;j++){const diff=Math.abs(allPerc[j]-allPerc[i]); if(diff>0 && diff<10 && (!best||diff<best.diff)) best={a:allPerc[i],b:allPerc[j],diff}}
-   if(best){before=Math.min(best.a,best.b); current=Math.max(best.a,best.b)}
- }
- const t=cleaned.match(/(\d{1,2})[:：](\d{2})[:：](\d{2})/); let hours=null,playtimeText='';
- if(t){const h=Number(t[1]),mi=Number(t[2]),s=Number(t[3]); hours=h+mi/60+s/3600; playtimeText=`${String(h).padStart(2,'0')}:${String(mi).padStart(2,'0')}:${String(s).padStart(2,'0')}`}
- // 怪物數：遊戲有兩種顯示
- // A. 目前狩獵的怪物數量 2200 ＝總怪物數
- // B. 每分鐘狩獵的怪物數量 106.6 ＝每分鐘怪物數
- let monsters=0;
- let monsterPerMinuteFromOCR=null;
+function normalizeMonster(value,mode,hours,rawText=''){
+  let monsters=0;
+  let monsterPerMinute=null;
+  let monsterPerHour=null;
 
- // 注意：OCR 白名單沒有中文，所以「每分鐘」常常辨識不到，只會看到 106.6
- // 因此先找「不是 EXP 的小數」，例如 106.6，當作每分鐘怪物數
- const decimalNumbers = (cleaned.match(/\b\d{1,4}[\.,]\d{1,3}\b/g)||[])
-   .map(x=>Number(x.replace(',','.')))
-   .filter(x=>isFinite(x));
+  if(!isFinite(value)||value<=0){
+    return {monsters,monsterPerMinute,monsterPerHour};
+  }
 
- // 排除 EXP 百分比，例如 34.645 / 34.862
- const expDecimals = [];
- if(isFinite(before)) expDecimals.push(before);
- if(isFinite(current)) expDecimals.push(current);
- lvPercents.forEach(x=>expDecimals.push(x));
+  let finalMode=mode;
 
- const monsterRateCandidates = decimalNumbers.filter(x=>{
-   const isExp = expDecimals.some(e=>Math.abs(e-x)<0.02);
-   return !isExp && x > 0 && x < 1000;
- });
+  if(finalMode==='auto'){
+    const hasDecimal=/[\.,]/.test(String(rawText||value));
 
- // 若有 106.6 這種小數，直接視為每分鐘怪物數
- if(monsterRateCandidates.length){
-   // 通常第一個就是右側黑框上面的「每分鐘狩獵怪物數量」
-   monsterPerMinuteFromOCR = monsterRateCandidates[0];
- }
+    if(hasDecimal){
+      finalMode='minute';
+    }else{
+      // 固定 UI 上方如果是小整數，也很可能是每分鐘。
+      // 總怪物數通常會大於 1000。
+      finalMode=value<1000?'minute':'total';
+    }
+  }
 
- // 總怪物數模式：只有沒有每分鐘數值時才抓總數
- if(!monsterPerMinuteFromOCR){
-   const totalMonsterPattern = cleaned.match(/(?:total|hunted|monster|MONSTER)[^0-9]{0,40}(\d{3,9}(?:,\d{3})*)/i);
-   if(totalMonsterPattern){
-     monsters = Number(totalMonsterPattern[1].replace(/,/g,''));
-   }
+  if(finalMode==='minute'){
+    monsterPerMinute=value;
+    monsterPerHour=value*60;
+    if(hours)monsters=monsterPerHour*hours;
+  }
 
-   if(!monsters){
-     const nums=(cleaned.match(/\b\d{4,7}\b/g)||[])
-       .map(x=>Number(x.replace(/,/g,'')))
-       .filter(x=>x>=1000&&x<9999999);
-     monsters=nums.length?nums[0]:0;
-   }
- }
+  if(finalMode==='hour'){
+    monsterPerHour=value;
+    monsterPerMinute=value/60;
+    if(hours)monsters=value*hours;
+  }
 
- // 如果是每分鐘模式，反推總怪物數，避免後面歷史紀錄沒值
- if(monsterPerMinuteFromOCR && hours){
-   monsters = monsterPerMinuteFromOCR * hours * 60;
- }
- // 等級：只認紅框區常見的 Lv.xxx，不用最大值，避免抓到 Stage / 物品數量 / 319
- let levelCandidates = [];
+  if(finalMode==='total'){
+    monsters=value;
+    if(hours){
+      monsterPerHour=value/hours;
+      monsterPerMinute=monsterPerHour/60;
+    }
+  }
 
- // Lv.106 / LV 106 / L v 106 都抓
- const lvTextMatches = cleaned.match(/L\s*v?\s*\.?\s*\d{1,3}/gi)||[];
- lvTextMatches.forEach(x=>{
-   const n = Number((x.match(/\d{1,3}/)||[])[0]);
-   if(isFinite(n)) levelCandidates.push(n);
- });
-
- // Lv + EXP 旁邊抓到的等級也加入候選
- levels.forEach(n=>levelCandidates.push(n));
-
- // 合理等級範圍：排除 319 / 320 這種 OCR 誤判
- levelCandidates = levelCandidates.filter(x => x >= 1 && x <= 250);
-
- // 排除常見干擾：Stage 13、道具數量、時間碎片
- levelCandidates = levelCandidates.filter(x => ![12,13,14,15,16,28,49,65,80].includes(x));
-
- // 同一等級通常會在右側與下方都出現，優先取出現次數最多者
- let level = null;
- if(levelCandidates.length){
-   const counts = {};
-   levelCandidates.forEach(n=>counts[n]=(counts[n]||0)+1);
-   level = Number(
-     Object.keys(counts).sort((a,b)=>counts[b]-counts[a] || Number(a)-Number(b))[0]
-   );
- }
-
- if(!isFinite(current)||!isFinite(before)) return {ok:false,reason:'找不到 Lv 旁邊的兩個 EXP 百分比',level,current,before,hours,monsters,monsterPerMinuteFromOCR,playtimeText};
- if(!isFinite(hours)||hours<=0) return {ok:false,reason:'找不到 PLAYTIME / 上線時間',level,current,before,hours,monsters,monsterPerMinuteFromOCR,playtimeText};
-
- // nextLevel 不再吃 OCR 第二個等級，永遠用目前等級 + 1
- return {ok:true,level,nextLevel:level?level+1:null,current,before,after:current,hours,monsters,monsterPerMinuteFromOCR,playtimeText};
+  return {monsters,monsterPerMinute,monsterPerHour};
 }
+
 function calculate(data){
- const perHour=data.manualPerHour || ((data.current-data.before)/data.hours);
- const remain=100-data.current;
+  const perHour=data.manualPerHour||((data.current-data.before)/data.hours);
+  const remain=100-data.current;
 
- if(perHour<=0||remain<=0){
-   return{
-     timeText:'已達標或資料錯誤',
-     perHour:0,
-     perDay:0,
-     monsterPerMinute:0,
-     monsterPerHour:0
-   };
- }
+  if(perHour<=0||remain<=0){
+    return{
+      timeText:'已達標或資料錯誤',
+      perHour:0,
+      perDay:0,
+      monsterPerMinute:0,
+      monsterPerHour:0
+    };
+  }
 
- const needHours=remain/perHour;
- const days=Math.floor(needHours/24);
- const hours=needHours-days*24;
+  const needHours=remain/perHour;
+  const days=Math.floor(needHours/24);
+  const hours=needHours-days*24;
 
- let monsterPerMinute=0;
- let monsterPerHour=0;
+  let monsterPerMinute=0;
+  let monsterPerHour=0;
 
- // 遊戲若已顯示每分鐘：直接用，不再除以上線時間
- if(data.monsterPerMinuteFromOCR){
-   monsterPerMinute=data.monsterPerMinuteFromOCR;
-   monsterPerHour=data.monsterPerHourFromOCR || monsterPerMinute*60;
- }
- // 遊戲若已顯示每小時：直接用，不再除以上線時間
- else if(data.monsterPerHourFromOCR){
-   monsterPerHour=data.monsterPerHourFromOCR;
-   monsterPerMinute=monsterPerHour/60;
- }
- // 若是總怪物數：才用上線時間去算
- else{
-   monsterPerHour=data.hours?data.monsters/data.hours:0;
-   monsterPerMinute=monsterPerHour/60;
- }
+  if(data.monsterPerMinuteFromOCR){
+    monsterPerMinute=data.monsterPerMinuteFromOCR;
+    monsterPerHour=data.monsterPerHourFromOCR||monsterPerMinute*60;
+  }else if(data.monsterPerHourFromOCR){
+    monsterPerHour=data.monsterPerHourFromOCR;
+    monsterPerMinute=monsterPerHour/60;
+  }else{
+    monsterPerHour=data.hours?data.monsters/data.hours:0;
+    monsterPerMinute=monsterPerHour/60;
+  }
 
- return{
-   timeText:`約 ${days} 天 ${hours.toFixed(1)} 小時`,
-   perHour,
-   perDay:perHour*24,
-   monsterPerHour,
-   monsterPerMinute
- };
+  return{
+    timeText:`約 ${days} 天 ${hours.toFixed(1)} 小時`,
+    perHour,
+    perDay:perHour*24,
+    monsterPerHour,
+    monsterPerMinute
+  };
 }
 
-function parseTimeToHours(v){v=(v||'').trim(); const hms=v.match(/(\d{1,3})[:：](\d{1,2})[:：](\d{1,2})/); if(hms)return Number(hms[1])+Number(hms[2])/60+Number(hms[3])/3600; const min=v.match(/(\d+(?:\.\d+)?)\s*(分|m|min)/i); if(min)return Number(min[1])/60; const hr=v.match(/(\d+(?:\.\d+)?)\s*(小時|h|hr)/i); if(hr)return Number(hr[1]); return Number(v)}
-function num(v){return Number(String(v||'').replace('%','').replace(',','.').replace(/[^\d.]/g,''))}
-function fmt(n,d=3){return isFinite(n)?Number(n).toFixed(d).replace(/\.?0+$/,''):'?'}
-function copyResult(){if(!lastShare){alert('尚未有結果');return} navigator.clipboard.writeText(lastShare); alert('已複製結果')}
-function saveHistory(data,calc,source){const key='mapleLevelHistoryV4'; const arr=JSON.parse(localStorage.getItem(key)||'[]'); arr.unshift({time:new Date().toLocaleString(),source,level:data.level,current:data.current,perHour:calc.perHour,remain:calc.timeText}); localStorage.setItem(key,JSON.stringify(arr.slice(0,20)))}
+function parseTimeToHours(v){
+  v=(v||'').trim();
+
+  const hms=v.match(/(\d{1,3})[:：](\d{1,2})[:：](\d{1,2})/);
+  if(hms)return Number(hms[1])+Number(hms[2])/60+Number(hms[3])/3600;
+
+  const min=v.match(/(\d+(?:\.\d+)?)\s*(分|m|min)/i);
+  if(min)return Number(min[1])/60;
+
+  const hr=v.match(/(\d+(?:\.\d+)?)\s*(小時|h|hr)/i);
+  if(hr)return Number(hr[1]);
+
+  return Number(v);
+}
+
+function num(v){
+  return Number(
+    String(v||'')
+      .replace('%','')
+      .replace(',','.')
+      .replace(/[^\d.]/g,'')
+  );
+}
+
+function fmt(n,d=3){
+  if(!isFinite(n))return'?';
+  return Number(n).toFixed(d).replace(/\.?0+$/,'');
+}
+
+function copyResult(){
+  if(!lastShare){
+    alert('尚未有結果');
+    return;
+  }
+
+  navigator.clipboard.writeText(lastShare);
+  alert('已複製結果');
+}
+
+function saveHistory(data,calc,source){
+  const key='mapleLevelHistoryStable';
+  const arr=JSON.parse(localStorage.getItem(key)||'[]');
+
+  arr.unshift({
+    time:new Date().toLocaleString(),
+    source,
+    level:data.level,
+    current:data.current,
+    perHour:calc.perHour,
+    remain:calc.timeText
+  });
+
+  localStorage.setItem(key,JSON.stringify(arr.slice(0,20)));
+}
 </script>
 </body>
 </html>
