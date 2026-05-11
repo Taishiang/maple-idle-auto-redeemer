@@ -363,7 +363,7 @@ select{
         </div>
         <div class="desc">
           防下降：13星以上才可手動勾選，可開也可關。<br>
-          防損壞：20星以上才可手動勾選；勾選後損壞率砍半，減少的損壞率加到維持。<br>
+          防損壞：20星以上才可手動勾選；勾選後損壞率砍半，但仍有機率損壞。<br>
           下拉選單只影響「自動衝25」模式；手動強化不會強制開啟防護。<br>
           損壞後會先歸0星，再自動復原到選定星力，並計入復原金幣與星力卷消耗。<br>
           <span id="restoreInfo">復原消耗：尚未設定</span>
@@ -642,31 +642,27 @@ function upgrade(){
       addLog(`⬇ ${tag} 失敗下降到 ${star}星`);
     }
   }else{
-    if(protectDestroy){
-      keepCnt++;
-      toast("🛡 防損壞");
-      addLog(`🛡 ${tag} 觸發損壞，但防損壞成功`);
-    }else{
-      const rc=getRestoreCost();
-      boomCnt++;
+    // 防損壞不是100%免爆，而是「損壞率砍半」
+    // 所以如果已經落在損壞區間，仍然要真的損壞
+    const rc=getRestoreCost();
+    boomCnt++;
 
-      // 損壞先歸0
-      star=0;
-      toast("💥 裝備損壞！星力歸0");
-      effect("boom");
+    // 損壞先歸0
+    star=0;
+    toast("💥 裝備損壞！星力歸0");
+    effect("boom");
 
-      addLog(`💥 ${tag} 裝備損壞｜星力歸0`);
+    addLog(`💥 ${tag} 裝備損壞｜星力歸0`);
 
-      // 自動復原
-      totalScroll+=rc.scroll;
-      totalGold+=rc.gold;
+    // 自動復原
+    totalScroll+=rc.scroll;
+    totalGold+=rc.gold;
 
-      star=rc.star;
+    star=rc.star;
 
-      addLog(`🔧 復原完成｜回到${rc.star}星｜消耗 ${fmt(rc.scroll)}卷 / ${fmt(rc.gold)}金幣`);
+    addLog(`🔧 復原完成｜回到${rc.star}星｜消耗 ${fmt(rc.scroll)}卷 / ${fmt(rc.gold)}金幣`);
 
-      toast(`🔧 已復原到${rc.star}星`);
-    }
+    toast(`🔧 已復原到${rc.star}星`);
   }
   update();
 }
