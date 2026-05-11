@@ -154,7 +154,7 @@ body{
 }
 .settings{
   display:grid;
-  grid-template-columns:190px 190px 1fr;
+  grid-template-columns:180px 180px 180px 1fr;
   gap:12px;
   align-items:start;
   margin-top:12px;
@@ -357,11 +357,16 @@ select{
           <label>自動模式防損壞</label>
           <select id="autoDestroyFrom" onchange="update()"></select>
         </div>
+        <div class="setting">
+          <label>損壞後復原星力</label>
+          <select id="restoreStar" onchange="updateRestoreInfo()"></select>
+        </div>
         <div class="desc">
           防下降：13星以上才可手動勾選，可開也可關。<br>
-          防損壞：20星以上才可手動勾選，可開也可關，損壞率已更新為砍半版。<br>
+          防損壞：20星以上才可手動勾選；勾選後損壞率砍半，減少的損壞率加到維持。<br>
           下拉選單只影響「自動衝25」模式；手動強化不會強制開啟防護。<br>
-          防護啟用時：星力卷與金幣消耗加倍；裝備損壞時重置為1星。
+          損壞後會先歸0星，再自動復原到選定星力，並計入復原金幣與星力卷消耗。<br>
+          <span id="restoreInfo">復原消耗：尚未設定</span>
         </div>
       </div>
     </div>
@@ -434,14 +439,42 @@ const table={
   17:[25,54,21,0,17,330000],
   18:[22.5,55,22.5,0,18,360000],
   19:[20,56,24,0,19,390000],
-  20:[14,80.5,0,5.5,20,420000],
-  21:[10,65,10,5,25,470000],
-  22:[8,67,10,5,30,520000],
-  23:[6,69,10,5,35,570000],
-  24:[4,71,10,5,40,620000]
+  20:[14,75,0,11,20,420000],
+  21:[10,70,10,10,25,470000],
+  22:[8,72,10,10,30,520000],
+  23:[6,74,10,10,35,570000],
+  24:[4,76,10,10,40,620000]
+};
+
+// 損壞後復原消耗：依官方表，可選 12～20 星
+// 格式：[星力卷, 金幣]
+const restoreTable={
+  12:[0,1000000],
+  13:[38,1720000],
+  14:[94,2720000],
+  15:[161,3910000],
+  16:[220,4960000],
+  17:[320,6800000],
+  18:[460,9460000],
+  19:[651,13210000],
+  20:[932,18810000]
 };
 
 function rule(s=star){return table[s]||[0,0,0,0,0,0]}
+
+// 實際使用機率：
+// 未勾防損壞 = 原始表格機率
+// 勾防損壞 = 損壞率砍半，砍掉的機率加到維持
+function effectiveRule(s=star){
+  const r=[...rule(s)];
+  const protecting = (s===star) ? protectDestroy : false;
+  if(protecting && r[3] > 0){
+    const cut = r[3] / 2;
+    r[1] += cut;
+    r[3] = cut;
+  }
+  return r;
+}
 function fmt(n){return Math.round(n).toLocaleString()}
 function pct(v){return Number.isInteger(v)?v+"%":v.toFixed(1)+"%"}
 function canDown(s=star){return rule(s)[2]>0}
@@ -454,6 +487,12 @@ function initSelects(){
   des.innerHTML='<option value="999">關閉</option>';
   for(let i=13;i<=24;i++) down.innerHTML+=`<option value="${i}" ${i===13?"selected":""}>${i}星以上</option>`;
   for(let i=20;i<=24;i++) des.innerHTML+=`<option value="${i}" ${i===20?"selected":""}>${i}星以上</option>`;
+
+  const restore=document.getElementById("restoreStar");
+  restore.innerHTML="";
+  for(let i=12;i<=20;i++){
+    restore.innerHTML+=`<option value="${i}" ${i===20?"selected":""}>復原到${i}星</option>`;
+  }
 }
 
 function applyProtection(){
@@ -480,11 +519,26 @@ function cost(){
   return {scroll:r[4]*mult,gold:r[5]*mult};
 }
 
+function getRestoreCost(){
+  const select=document.getElementById("restoreStar");
+  const s=select ? Number(select.value) : 20;
+  const data=restoreTable[s] || restoreTable[20];
+  return {star:s,scroll:data[0],gold:data[1]};
+}
+
+function updateRestoreInfo(){
+  const r=getRestoreCost();
+  const text=`復原消耗：復原到${r.star}星｜${fmt(r.scroll)}卷 / ${fmt(r.gold)}金幣`;
+  const el=document.getElementById("restoreInfo");
+  if(el) el.textContent=text;
+  update();
+}
+
 function update(){
   if(star<0)star=0;
   if(star>25)star=25;
   applyProtection();
-  const r=rule();
+  const r=effectiveRule();
   const c=cost();
 
   document.getElementById("curStar").textContent=star;
@@ -515,6 +569,12 @@ function update(){
   document.getElementById("totalGold").textContent=fmt(totalGold);
   document.getElementById("maxStar").textContent=star;
   document.getElementById("autoBtn").textContent=autoTimer?"停止自動":"自動衝25";
+
+  const restoreEl=document.getElementById("restoreInfo");
+  if(restoreEl){
+    const rc=getRestoreCost();
+    restoreEl.textContent=`復原消耗：復原到${rc.star}星｜${fmt(rc.scroll)}卷 / ${fmt(rc.gold)}金幣`;
+  }
 }
 
 function manualToggleDown(){
@@ -549,7 +609,7 @@ function effect(type){
 function upgrade(){
   if(star>=25){toast("已達25星");stopAuto();return;}
   update();
-  const r=rule();
+  const r=effectiveRule();
   const c=cost();
   const before=star;
   const tag=`${before} → ${before+1}`;
@@ -587,12 +647,25 @@ function upgrade(){
       toast("🛡 防損壞");
       addLog(`🛡 ${tag} 觸發損壞，但防損壞成功`);
     }else{
-      star=1;
+      const rc=getRestoreCost();
       boomCnt++;
-      maxStar=Math.max(maxStar,star);
-      toast("💥 損壞回1星");
+
+      // 損壞先歸0
+      star=0;
+      toast("💥 裝備損壞！星力歸0");
       effect("boom");
-      addLog(`💥 ${tag} 裝備損壞，回到1星`);
+
+      addLog(`💥 ${tag} 裝備損壞｜星力歸0`);
+
+      // 自動復原
+      totalScroll+=rc.scroll;
+      totalGold+=rc.gold;
+
+      star=rc.star;
+
+      addLog(`🔧 復原完成｜回到${rc.star}星｜消耗 ${fmt(rc.scroll)}卷 / ${fmt(rc.gold)}金幣`);
+
+      toast(`🔧 已復原到${rc.star}星`);
     }
   }
   update();
