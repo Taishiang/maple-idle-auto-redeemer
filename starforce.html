@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>星力強化小遊戲</title>
+<title>星力強化小遊戲 V15 Mobile</title>
 <style>
 :root{
   --bg:#07111f;
@@ -256,16 +256,23 @@ select{
   border:1px solid #2f3d51;
   background:#08111e;
   border-radius:10px;
-  padding:14px;
+  padding:12px 10px;
   display:flex;
   justify-content:center;
   align-items:center;
-  gap:14px;
-  font-size:21px;
+  gap:10px;
+  font-size:17px;
   font-weight:900;
+  text-align:center;
+  line-height:1.25;
+  min-width:0;
 }
 .footerBox .big{
-  font-size:27px;
+  font-size:22px;
+  word-break:break-all;
+}
+.footerBox.money{
+  color:var(--gold);
 }
 .toast{
   position:fixed;
@@ -307,12 +314,155 @@ select{
   .footer{grid-template-columns:1fr}
   .protectRow{grid-template-columns:1fr}
 }
+
+/* ===== V15 手機壓縮版 ===== */
+@media(max-width:760px){
+  body{background:#07111f}
+  .wrap{padding:4px}
+  .game{
+    border-radius:12px;
+    padding:8px;
+    border-width:1px;
+  }
+  .title{
+    font-size:24px;
+    margin:2px 0 8px;
+    letter-spacing:1px;
+  }
+  .section{
+    padding:8px;
+    margin-bottom:7px;
+    border-radius:10px;
+  }
+  .stage{
+    font-size:20px;
+    margin-bottom:8px;
+    grid-template-columns:1fr 28px 1fr;
+  }
+  .rates{
+    grid-template-columns:repeat(4,1fr);
+    border-radius:9px;
+  }
+  .rate{
+    min-height:66px;
+  }
+  .rate .label{
+    font-size:13px;
+    padding-top:8px;
+  }
+  .rate .num{
+    font-size:24px;
+    margin-top:4px;
+  }
+  .protectRow{
+    gap:6px;
+    margin-top:8px;
+  }
+  .protect{
+    padding:7px;
+    font-size:13px;
+    gap:6px;
+  }
+  .check{
+    width:22px;
+    height:22px;
+    border-radius:5px;
+  }
+  .check.on:after{
+    font-size:20px;
+  }
+  .controls{
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+  }
+  .btn{
+    font-size:17px;
+    padding:12px 6px;
+    border-radius:10px;
+  }
+  .btn.primary{
+    grid-column:1/-1;
+    font-size:25px;
+    padding:15px 6px;
+  }
+  .settings{
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+    margin-top:8px;
+  }
+  .setting{
+    padding:7px;
+    font-size:13px;
+  }
+  select{
+    padding:8px;
+    font-size:14px;
+  }
+  .desc{
+    grid-column:1/-1;
+    font-size:13px;
+    line-height:1.45;
+    max-height:58px;
+    overflow:auto;
+  }
+  .sectionTitle{
+    font-size:22px;
+    margin-bottom:7px;
+  }
+  .infoGrid{
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+  }
+  .infoBox{
+    padding:8px;
+  }
+  .infoBox .label{
+    font-size:15px;
+  }
+  .infoBox .value{
+    font-size:32px;
+    margin-top:4px;
+  }
+  .statBox{
+    grid-column:1/-1;
+    grid-template-columns:repeat(5,1fr);
+    padding:7px 2px;
+  }
+  .statItem .slabel{
+    font-size:12px;
+    white-space:nowrap;
+  }
+  .statItem .snum{
+    font-size:20px;
+    margin-top:5px;
+  }
+  .log{
+    height:95px;
+    padding:8px;
+    font-size:13px;
+    line-height:1.35;
+  }
+  .footer{
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+  }
+  .footerBox{
+    padding:9px 6px;
+    font-size:14px;
+    gap:6px;
+    border-radius:9px;
+  }
+  .footerBox .big{
+    font-size:18px;
+  }
+}
+
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="game" id="game">
-    <div class="title">✨ 星力強化小遊戲 ✨</div>
+    <div class="title">✨ 星力強化小遊戲 V15 Mobile ✨</div>
 
     <div class="section">
       <div class="stage">
@@ -399,6 +549,7 @@ select{
 
     <div class="footer">
       <div class="footerBox">📜 消耗星力卷 <span class="big" id="totalScroll">0</span></div>
+      <div class="footerBox money">💰 約花費台幣 <span class="big" id="twdCost">0</span></div>
       <div class="footerBox">🪙 消耗金幣 <span class="big" id="totalGold">0</span></div>
       <div class="footerBox">⭐ 目前星力 <span class="big" id="maxStar">0</span></div>
     </div>
@@ -476,6 +627,10 @@ function effectiveRule(s=star){
   return r;
 }
 function fmt(n){return Math.round(n).toLocaleString()}
+function twdFromScroll(scroll){
+  // 商城 12 張星力卷 = 130 台幣
+  return (scroll / 12) * 130;
+}
 function pct(v){return Number.isInteger(v)?v+"%":v.toFixed(1)+"%"}
 function canDown(s=star){return rule(s)[2]>0}
 function canDestroy(s=star){return rule(s)[3]>0}
@@ -566,6 +721,8 @@ function update(){
   document.getElementById("boomCnt").textContent=boomCnt;
   document.getElementById("tryCnt").textContent=tryCnt;
   document.getElementById("totalScroll").textContent=fmt(totalScroll);
+  const twdEl=document.getElementById("twdCost");
+  if(twdEl) twdEl.textContent=fmt(twdFromScroll(totalScroll));
   document.getElementById("totalGold").textContent=fmt(totalGold);
   document.getElementById("maxStar").textContent=star;
   document.getElementById("autoBtn").textContent=autoTimer?"停止自動":"自動衝25";
@@ -677,7 +834,12 @@ function multi(n){
 function toggleAuto(){
   if(autoTimer){stopAuto();return;}
   autoTimer=setInterval(()=>{
-    if(star>=25){stopAuto();toast("🏆 25星達成");return;}
+    if(star>=25){
+      stopAuto();
+      toast("🏆 25星達成");
+      addLog(`🏆 25星達成｜星力卷 ${fmt(totalScroll)} 張｜約花費 ${fmt(twdFromScroll(totalScroll))} 台幣`);
+      return;
+    }
     upgrade();
   },130);
   update();
