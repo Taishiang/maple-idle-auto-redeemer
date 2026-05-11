@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>星力強化小遊戲 V8</title>
+<style>
+:root{
+  --bg:#07111f;
+  --panel:#0d1726;
+  --panel2:#111c2d;
+  --line:#35445a;
+  --green:#9cff21;
+  --red:#ff434d;
+  --white:#f8fafc;
+  --muted:#aab3c2;
+  --gold:#ffd15c;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  background:radial-gradient(circle at top,#14243a 0,#07111f 52%,#03070d 100%);
+  color:var(--white);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",Arial,sans-serif;
+}
+.wrap{
+  max-width:980px;
+  margin:auto;
+  padding:8px;
+}
+.game{
+  border:2px solid #526072;
+  border-radius:18px;
+  background:linear-gradient(180deg,#101c2d,#07101d);
+  box-shadow:0 16px 40px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.08);
+  padding:14px;
+}
+.title{
+  text-align:center;
+  font-size:34px;
+  font-weight:900;
+  letter-spacing:2px;
+  margin:4px 0 12px;
+  text-shadow:0 2px 0 #000;
+}
+.section{
+  border:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(22,34,52,.95),rgba(7,14,25,.98));
+  border-radius:12px;
+  padding:12px;
+  margin-bottom:10px;
+}
+.stage{
+  display:grid;
+  grid-template-columns:1fr 50px 1fr;
+  align-items:center;
+  text-align:center;
+  font-size:28px;
+  font-weight:900;
+  margin-bottom:12px;
+}
+.stage .now{color:var(--green)}
+.stage .arrow{color:#d7dde6}
+.rates{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  border:1px solid var(--line);
+  border-radius:12px;
+  overflow:hidden;
+}
+.rate{
+  min-height:92px;
+  border-right:1px solid var(--line);
+  background:#09111d;
+  text-align:center;
+}
+.rate:last-child{border-right:none}
+.rate .label{
+  padding-top:14px;
+  color:#cbd5e1;
+  font-size:20px;
+  font-weight:900;
+}
+.rate .num{
+  margin-top:8px;
+  font-size:36px;
+  font-weight:900;
+}
+.green{color:var(--green)}
+.red{color:var(--red)}
+.protectRow{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+}
+.protect{
+  border:1px solid var(--line);
+  background:#08111e;
+  border-radius:9px;
+  padding:10px;
+  font-size:18px;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  cursor:pointer;
+}
+.protect.disabled{
+  opacity:.42;
+  pointer-events:none;
+}
+.check{
+  width:28px;height:28px;
+  border:2px solid #667085;
+  border-radius:6px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+}
+.check.on:after{
+  content:"✓";
+  color:var(--green);
+  font-size:26px;
+  line-height:1;
+}
+.controls{
+  display:grid;
+  grid-template-columns:1.8fr 1fr 1fr 1fr;
+  gap:12px;
+  align-items:stretch;
+}
+.btn{
+  border:1px solid #42506a;
+  border-radius:11px;
+  padding:15px 8px;
+  color:#fff;
+  font-size:22px;
+  font-weight:900;
+  background:linear-gradient(#263244,#111927);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 5px 12px rgba(0,0,0,.35);
+}
+.btn.primary{
+  background:linear-gradient(#9de11d,#4f8b0c);
+  font-size:30px;
+}
+.btn.auto{
+  background:linear-gradient(#97d91a,#477909);
+}
+.btn.reset{
+  background:linear-gradient(#d42f35,#7f171b);
+}
+.settings{
+  display:grid;
+  grid-template-columns:190px 190px 1fr;
+  gap:12px;
+  align-items:start;
+  margin-top:12px;
+}
+.setting{
+  border:1px solid #29384c;
+  background:#07111e;
+  border-radius:9px;
+  padding:9px;
+  font-weight:900;
+}
+.setting label{
+  display:block;
+  margin-bottom:6px;
+}
+select{
+  width:100%;
+  border:1px solid #536177;
+  background:#111a29;
+  color:#fff;
+  border-radius:8px;
+  padding:10px;
+  font-size:17px;
+  font-weight:900;
+}
+.desc{
+  color:#c5cedb;
+  line-height:1.65;
+  font-size:16px;
+}
+.infoGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr 1.25fr;
+  gap:10px;
+}
+.infoBox,.statBox{
+  border:1px solid #2f3d51;
+  background:#08111e;
+  border-radius:10px;
+  padding:12px;
+  text-align:center;
+}
+.infoBox .label{
+  color:#cbd5e1;
+  font-size:19px;
+  font-weight:900;
+}
+.infoBox .value{
+  color:var(--green);
+  font-size:38px;
+  font-weight:900;
+  margin-top:8px;
+}
+.statBox{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:0;
+  padding:10px 4px;
+}
+.statItem{
+  border-right:1px solid #29384c;
+  text-align:center;
+}
+.statItem:last-child{border-right:none}
+.statItem .slabel{
+  font-size:17px;
+  color:#d8dee8;
+  font-weight:900;
+}
+.statItem .snum{
+  margin-top:8px;
+  font-size:27px;
+  font-weight:900;
+}
+.sectionTitle{
+  text-align:center;
+  color:var(--green);
+  font-size:26px;
+  font-weight:900;
+  margin-bottom:10px;
+}
+.log{
+  height:170px;
+  overflow:auto;
+  background:#050b14;
+  border:1px solid #26354a;
+  border-radius:10px;
+  padding:12px;
+  color:#e5e7eb;
+  font-size:16px;
+  line-height:1.55;
+}
+.footer{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:10px;
+}
+.footerBox{
+  border:1px solid #2f3d51;
+  background:#08111e;
+  border-radius:10px;
+  padding:14px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:14px;
+  font-size:21px;
+  font-weight:900;
+}
+.footerBox .big{
+  font-size:27px;
+}
+.toast{
+  position:fixed;
+  left:50%;
+  top:45%;
+  transform:translate(-50%,-50%) scale(.95);
+  opacity:0;
+  pointer-events:none;
+  transition:.18s;
+  z-index:20;
+  background:rgba(0,0,0,.88);
+  border:2px solid #67758c;
+  border-radius:18px;
+  padding:22px 36px;
+  font-size:36px;
+  font-weight:900;
+}
+.toast.show{
+  opacity:1;
+  transform:translate(-50%,-50%) scale(1);
+}
+.flash{animation:flash .45s}
+.shake{animation:shake .3s}
+@keyframes flash{0%{filter:brightness(1)}45%{filter:brightness(2.25)}100%{filter:brightness(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-5px)}}
+@media(max-width:760px){
+  .title{font-size:27px}
+  .stage{font-size:22px}
+  .rate .label{font-size:16px}
+  .rate .num{font-size:26px}
+  .controls{grid-template-columns:1fr 1fr}
+  .btn.primary{grid-column:1/-1}
+  .settings{grid-template-columns:1fr 1fr}
+  .desc{grid-column:1/-1}
+  .infoGrid{grid-template-columns:1fr 1fr}
+  .statBox{grid-column:1/-1;grid-template-columns:repeat(5,1fr)}
+  .statItem .slabel{font-size:13px}
+  .statItem .snum{font-size:20px}
+  .footer{grid-template-columns:1fr}
+  .protectRow{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="game" id="game">
+    <div class="title">✨ 星力強化小遊戲 V8 ✨</div>
+
+    <div class="section">
+      <div class="stage">
+        <div class="now">第<span id="curStar">0</span>階段</div>
+        <div class="arrow">»</div>
+        <div>第<span id="nextStar">1</span>階段</div>
+      </div>
+
+      <div class="rates">
+        <div class="rate"><div class="label">成功</div><div class="num green" id="success">100%</div></div>
+        <div class="rate"><div class="label">維持</div><div class="num" id="keep">0%</div></div>
+        <div class="rate"><div class="label">下降</div><div class="num" id="down">0%</div></div>
+        <div class="rate"><div class="label">損壞</div><div class="num red" id="destroy">0%</div></div>
+      </div>
+
+      <div class="protectRow">
+        <div class="protect" id="downOpt" onclick="manualToggleDown()">
+          <div class="check" id="downCheck"></div>
+          <div id="downText">防下降（下降0%不可用）</div>
+        </div>
+        <div class="protect" id="destroyOpt" onclick="manualToggleDestroy()">
+          <div class="check" id="destroyCheck"></div>
+          <div id="destroyText">防損壞（損壞0%不可用）</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="controls">
+        <button class="btn primary" onclick="upgrade()">強化一次<br><span id="oneCost">1卷 / 20,000</span></button>
+        <button class="btn" onclick="multi(10)">10連</button>
+        <button class="btn auto" id="autoBtn" onclick="toggleAuto()">自動衝25</button>
+        <button class="btn reset" onclick="resetGame()">重置</button>
+      </div>
+
+      <div class="settings">
+        <div class="setting">
+          <label>自動模式防下降</label>
+          <select id="autoDownFrom" onchange="update()"></select>
+        </div>
+        <div class="setting">
+          <label>自動模式防損壞</label>
+          <select id="autoDestroyFrom" onchange="update()"></select>
+        </div>
+        <div class="desc">
+          防下降：13星以上才可手動勾選，可開也可關。<br>
+          防損壞：20星以上才可手動勾選，可開也可關。<br>
+          下拉選單只影響「自動衝25」模式；手動強化不會強制開啟防護。<br>
+          防護啟用時：星力卷與金幣消耗加倍；裝備損壞時重置為1星。
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sectionTitle">強化資訊</div>
+      <div class="infoGrid">
+        <div class="infoBox">
+          <div class="label">當前星力</div>
+          <div class="value" id="infoStar">0</div>
+        </div>
+        <div class="infoBox">
+          <div class="label">目標星力</div>
+          <div class="value" id="targetStar">1</div>
+        </div>
+        <div class="statBox">
+          <div class="statItem"><div class="slabel">✨ 成功</div><div class="snum" id="succ">0</div></div>
+          <div class="statItem"><div class="slabel">🙂 維持</div><div class="snum" id="keepCnt">0</div></div>
+          <div class="statItem"><div class="slabel">⬇ 下降</div><div class="snum" id="downCnt">0</div></div>
+          <div class="statItem"><div class="slabel">💥 損壞</div><div class="snum" id="boomCnt">0</div></div>
+          <div class="statItem"><div class="slabel">🎯 次數</div><div class="snum" id="tryCnt">0</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sectionTitle">強化紀錄</div>
+      <div class="log" id="log"></div>
+    </div>
+
+    <div class="footer">
+      <div class="footerBox">📜 消耗星力卷 <span class="big" id="totalScroll">0</span></div>
+      <div class="footerBox">🪙 消耗金幣 <span class="big" id="totalGold">0</span></div>
+      <div class="footerBox">⭐ 目前星力 <span class="big" id="maxStar">0</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let star=0;
+let protectDown=false;
+let protectDestroy=false;
+let manualDown=false;
+let manualDestroy=false;
+let autoTimer=null;
+
+let totalScroll=0,totalGold=0,succ=0,keepCnt=0,downCnt=0,boomCnt=0,tryCnt=0,maxStar=0;
+
+// index = 目前星數；內容 = [成功, 維持, 下降, 損壞, 星力卷, 金幣]
+const table={
+  0:[100,0,0,0,1,20000],
+  1:[100,0,0,0,2,30000],
+  2:[90,10,0,0,3,40000],
+  3:[85,15,0,0,4,50000],
+  4:[80,20,0,0,5,60000],
+  5:[70,30,0,0,6,70000],
+  6:[65,35,0,0,6,90000],
+  7:[60,40,0,0,7,110000],
+  8:[55,45,0,0,8,130000],
+  9:[50,50,0,0,9,150000],
+  10:[35,65,0,0,10,170000],
+  11:[34,66,0,0,11,190000],
+  12:[33,67,0,0,12,210000],
+  13:[32,56,12,0,13,230000],
+  14:[31,57,12,0,14,250000],
+  15:[30,67,3,0,15,270000],
+  16:[27.5,53,19.5,0,16,300000],
+  17:[25,54,21,0,17,330000],
+  18:[22.5,55,22.5,0,18,360000],
+  19:[20,56,24,0,19,390000],
+  20:[14,75,0,11,20,420000],
+  21:[10,70,10,10,25,470000],
+  22:[8,72,10,10,30,520000],
+  23:[6,74,10,10,35,570000],
+  24:[4,76,10,10,40,620000]
+};
+
+function rule(s=star){return table[s]||[0,0,0,0,0,0]}
+function fmt(n){return Math.round(n).toLocaleString()}
+function pct(v){return Number.isInteger(v)?v+"%":v.toFixed(1)+"%"}
+function canDown(s=star){return rule(s)[2]>0}
+function canDestroy(s=star){return rule(s)[3]>0}
+
+function initSelects(){
+  const down=document.getElementById("autoDownFrom");
+  const des=document.getElementById("autoDestroyFrom");
+  down.innerHTML='<option value="999">關閉</option>';
+  des.innerHTML='<option value="999">關閉</option>';
+  for(let i=13;i<=24;i++) down.innerHTML+=`<option value="${i}" ${i===13?"selected":""}>${i}星以上</option>`;
+  for(let i=20;i<=24;i++) des.innerHTML+=`<option value="${i}" ${i===20?"selected":""}>${i}星以上</option>`;
+}
+
+function applyProtection(){
+  const downFrom=Number(document.getElementById("autoDownFrom").value);
+  const desFrom=Number(document.getElementById("autoDestroyFrom").value);
+
+  // 平常手動玩：只看玩家自己打勾
+  // 按下「自動衝25」時：才會套用自動防護設定
+  const autoDown = autoTimer && canDown() && star >= downFrom;
+  const autoDes = autoTimer && canDestroy() && star >= desFrom;
+
+  protectDown = canDown() && (manualDown || autoDown);
+  protectDestroy = canDestroy() && (manualDestroy || autoDes);
+
+  if(!canDown()) manualDown = false;
+  if(!canDestroy()) manualDestroy = false;
+}
+
+function cost(){
+  const r=rule();
+  let mult=1;
+  if(protectDown&&canDown()) mult*=2;
+  if(protectDestroy&&canDestroy()) mult*=2;
+  return {scroll:r[4]*mult,gold:r[5]*mult};
+}
+
+function update(){
+  if(star<0)star=0;
+  if(star>25)star=25;
+  applyProtection();
+  const r=rule();
+  const c=cost();
+
+  document.getElementById("curStar").textContent=star;
+  document.getElementById("nextStar").textContent=star>=25?"MAX":star+1;
+  document.getElementById("success").textContent=pct(r[0]);
+  document.getElementById("keep").textContent=pct(r[1]);
+  document.getElementById("down").textContent=pct(r[2]);
+  document.getElementById("destroy").textContent=pct(r[3]);
+
+  document.getElementById("downOpt").classList.toggle("disabled",!canDown());
+  document.getElementById("destroyOpt").classList.toggle("disabled",!canDestroy());
+  document.getElementById("downCheck").className="check "+(protectDown?"on":"");
+  document.getElementById("destroyCheck").className="check "+(protectDestroy?"on":"");
+
+  document.getElementById("downText").textContent=canDown()?`防下降（開啟後 ${fmt(rule()[4]*2)}卷 / ${fmt(rule()[5]*2)}金幣）`:"防下降（下降0%不可用）";
+  document.getElementById("destroyText").textContent=canDestroy()?`防損壞（開啟後 ${fmt(rule()[4]*2)}卷 / ${fmt(rule()[5]*2)}金幣）`:"防損壞（損壞0%不可用）";
+
+  document.getElementById("oneCost").textContent=star>=25?"MAX":`${fmt(c.scroll)}卷 / ${fmt(c.gold)}`;
+  document.getElementById("infoStar").textContent=star;
+  document.getElementById("targetStar").textContent=star>=25?"MAX":star+1;
+
+  document.getElementById("succ").textContent=succ;
+  document.getElementById("keepCnt").textContent=keepCnt;
+  document.getElementById("downCnt").textContent=downCnt;
+  document.getElementById("boomCnt").textContent=boomCnt;
+  document.getElementById("tryCnt").textContent=tryCnt;
+  document.getElementById("totalScroll").textContent=fmt(totalScroll);
+  document.getElementById("totalGold").textContent=fmt(totalGold);
+  document.getElementById("maxStar").textContent=star;
+  document.getElementById("autoBtn").textContent=autoTimer?"停止自動":"自動衝25";
+}
+
+function manualToggleDown(){
+  if(!canDown())return;
+  manualDown=!manualDown;
+  update();
+}
+function manualToggleDestroy(){
+  if(!canDestroy())return;
+  manualDestroy=!manualDestroy;
+  update();
+}
+
+function toast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;
+  t.className="toast show";
+  clearTimeout(window.tt);
+  window.tt=setTimeout(()=>t.className="toast",650);
+}
+function addLog(msg){
+  const log=document.getElementById("log");
+  log.innerHTML=msg+"<br>"+log.innerHTML;
+}
+function effect(type){
+  const g=document.getElementById("game");
+  g.classList.remove("flash","shake");
+  void g.offsetWidth;
+  g.classList.add(type==="boom"?"shake":"flash");
+}
+
+function upgrade(){
+  if(star>=25){toast("已達25星");stopAuto();return;}
+  update();
+  const r=rule();
+  const c=cost();
+  const before=star;
+  const tag=`${before} → ${before+1}`;
+  totalScroll+=c.scroll;
+  totalGold+=c.gold;
+  tryCnt++;
+
+  const roll=Math.random()*100;
+  if(roll<r[0]){
+    star++;
+    succ++;
+    maxStar=Math.max(maxStar,star);
+    toast("✨ 成功");
+    effect("flash");
+    addLog(`✨ ${tag} 成功 ｜ 消耗 ${fmt(c.scroll)}卷 / ${fmt(c.gold)}金幣`);
+  }else if(roll<r[0]+r[1]){
+    keepCnt++;
+    toast("🙂 維持");
+    addLog(`🙂 ${tag} 維持 ｜ 消耗 ${fmt(c.scroll)}卷 / ${fmt(c.gold)}金幣`);
+  }else if(roll<r[0]+r[1]+r[2]){
+    if(protectDown){
+      keepCnt++;
+      toast("🛡 防下降");
+      addLog(`🛡 ${tag} 觸發下降，但防下降成功`);
+    }else{
+      star=Math.max(0,star-1);
+      downCnt++;
+      toast("⬇ 下降");
+      effect("shake");
+      addLog(`⬇ ${tag} 失敗下降到 ${star}星`);
+    }
+  }else{
+    if(protectDestroy){
+      keepCnt++;
+      toast("🛡 防損壞");
+      addLog(`🛡 ${tag} 觸發損壞，但防損壞成功`);
+    }else{
+      star=1;
+      boomCnt++;
+      maxStar=Math.max(maxStar,star);
+      toast("💥 損壞回1星");
+      effect("boom");
+      addLog(`💥 ${tag} 裝備損壞，回到1星`);
+    }
+  }
+  update();
+}
+
+function multi(n){
+  let i=0;
+  const timer=setInterval(()=>{
+    if(i>=n||star>=25){clearInterval(timer);return;}
+    upgrade();i++;
+  },160);
+}
+function toggleAuto(){
+  if(autoTimer){stopAuto();return;}
+  autoTimer=setInterval(()=>{
+    if(star>=25){stopAuto();toast("🏆 25星達成");return;}
+    upgrade();
+  },130);
+  update();
+}
+function stopAuto(){
+  if(autoTimer){clearInterval(autoTimer);autoTimer=null;update();}
+}
+function resetGame(){
+  stopAuto();
+  star=0;protectDown=false;protectDestroy=false;manualDown=false;manualDestroy=false;
+  totalScroll=0;totalGold=0;succ=0;keepCnt=0;downCnt=0;boomCnt=0;tryCnt=0;maxStar=0;
+  document.getElementById("log").innerHTML="";
+  toast("已重置");
+  update();
+}
+
+initSelects();
+update();
+</script>
+</body>
+</html>
