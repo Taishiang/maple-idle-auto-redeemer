@@ -6,7 +6,7 @@
 <title>Maple Idle Tools</title>
 <style>
 body{margin:0;background:#0f172a;color:white;font-family:Arial,"Noto Sans TC",sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh}
-.bg{position:fixed;inset:0;background:radial-gradient(circle at top left,#f9731630,transparent 30%),radial-gradient(circle at bottom right,#ec489930,transparent 30%)}
+.bg{position:fixed;inset:0;background:radial-gradient(circle at top left,#f9731630,transparent 30%),radial-gradient(circle at bottom right,#ec489930,transparent 30%),radial-gradient(circle at center,#22c55e20,transparent 35%)}
 .card{position:relative;z-index:2;width:90%;max-width:900px;background:rgba(255,255,255,.05);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.08);border-radius:32px;padding:60px;text-align:center;box-shadow:0 20px 80px rgba(0,0,0,.45)}
 h1{font-size:64px;margin:0;font-weight:900}
 .gradient{background:linear-gradient(90deg,#f97316,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
@@ -16,8 +16,9 @@ a{text-decoration:none;color:white;font-weight:800;padding:18px 30px;border-radi
 .install{background:linear-gradient(135deg,#f97316,#ec4899)}
 .official{background:#1e293b}
 .calc{background:linear-gradient(135deg,#06b6d4,#3b82f6)}
+.starforce{background:linear-gradient(135deg,#84cc16,#22c55e)}
 .footer{margin-top:40px;font-size:15px;color:#94a3b8;line-height:2}
-@media(max-width:768px){.card{padding:40px 24px}h1{font-size:42px}.buttons{flex-direction:column}a{width:100%}}
+@media(max-width:768px){.card{padding:40px 24px}h1{font-size:42px}.buttons{flex-direction:column}a{width:100%;box-sizing:border-box}}
 </style>
 </head>
 <body>
@@ -29,7 +30,7 @@ a{text-decoration:none;color:white;font-weight:800;padding:18px 30px;border-radi
 
 <p>
 MapleStory Idle 玩家工具箱<br>
-支援批次兌換、UID 保存、升級時間計算。
+支援批次兌換、UID 保存、升級時間計算、星力強化模擬。
 </p>
 
 <div class="buttons">
@@ -46,6 +47,10 @@ MapleStory Idle 玩家工具箱<br>
 <a class="calc" href="level.html">
 📊 升級計算器
 </a>
+
+<a class="starforce" href="starforce.html">
+🌟 星力強化小遊戲
+</a>
 </div>
 
 <div class="footer">
@@ -53,7 +58,8 @@ MapleStory Idle 玩家工具箱<br>
 ① 安裝 Tampermonkey<br>
 ② 安裝兌換腳本<br>
 ③ 打開官方兌換頁，自動出現 UI<br>
-④ 使用升級計算器估算掛機升級時間<br><br>
+④ 使用升級計算器估算掛機升級時間<br>
+⑤ 使用星力強化小遊戲模擬衝星成本<br><br>
 此工具為非官方玩家輔助工具
 </div>
 </div>
