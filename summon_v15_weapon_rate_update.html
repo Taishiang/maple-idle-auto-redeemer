@@ -3,12 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>召喚模擬器 V15｜官方二段式機率版</title>
+<title>召喚模擬器 V16｜手機友善版</title>
 
 <style>
-*{
-  box-sizing:border-box;
-}
+*{box-sizing:border-box}
 
 html,body{
   margin:0;
@@ -16,12 +14,8 @@ html,body{
   height:100%;
   overflow:hidden;
   background:#05070d;
-  font-family:"Microsoft JhengHei",sans-serif;
+  font-family:"Microsoft JhengHei",Arial,sans-serif;
   color:#fff;
-}
-
-body.mobile{
-  overflow:hidden;
 }
 
 .stage{
@@ -29,164 +23,100 @@ body.mobile{
   width:100vw;
   height:100vh;
   overflow:hidden;
-
   background:
-  radial-gradient(circle at center,
-  rgba(120,70,255,.75),
-  rgba(32,18,92,.92) 45%,
-  #05070d 85%);
+    radial-gradient(circle at center,rgba(120,70,255,.75),rgba(32,18,92,.92) 45%,#05070d 85%);
 }
 
 .stars{
   position:absolute;
   inset:0;
   opacity:.35;
-
-  background-image:
-  radial-gradient(circle,white 1px,transparent 2px);
-
+  background-image:radial-gradient(circle,white 1px,transparent 2px);
   background-size:80px 80px;
 }
 
 .top{
   position:absolute;
-  left:2%;
-  right:2%;
+  left:3%;
+  right:3%;
   top:2%;
   height:7%;
-
   display:flex;
   align-items:center;
   justify-content:space-between;
-
   z-index:5;
 }
 
 .leftTitle{
   display:flex;
   align-items:center;
-  gap:12px;
-
-  font-size:34px;
+  gap:10px;
+  font-size:30px;
   font-weight:900;
 }
 
 .back{
-  font-size:52px;
+  font-size:48px;
+  line-height:1;
 }
 
 .currency{
   display:flex;
-  gap:22px;
-  font-size:24px;
+  gap:18px;
+  font-size:22px;
   font-weight:900;
-}
-
-.tabs{
-  position:absolute;
-  left:2%;
-  top:15%;
-  width:15%;
-
-  display:flex;
-  flex-direction:column;
-  gap:14px;
-
-  z-index:5;
-}
-
-.tab{
-  border:0;
-  height:90px;
-  border-radius:18px;
-
-  background:rgba(0,0,0,.35);
-
-  color:white;
-
-  font-size:28px;
-  font-weight:900;
-
-  cursor:pointer;
-}
-
-.tab.active{
-  background:
-  linear-gradient(
-  180deg,
-  #34dfff,
-  #0a90b8
-  );
-
-  box-shadow:
-  0 0 18px rgba(52,223,255,.7);
 }
 
 .centerHint{
   position:absolute;
-
-  left:19%;
+  left:3%;
   right:3%;
-  top:11%;
-  bottom:20%;
-
+  top:12%;
+  bottom:21%;
   border-radius:22px;
-
   display:flex;
   align-items:center;
   justify-content:center;
-
   color:rgba(255,255,255,.7);
-
-  font-size:34px;
+  font-size:30px;
   font-weight:900;
+  text-align:center;
 }
 
 .result{
   position:absolute;
-
-  left:19%;
+  left:3%;
   right:3%;
-  top:11%;
-  bottom:20%;
-
+  top:12%;
+  bottom:21%;
   display:none;
   flex-direction:column;
-
   z-index:10;
 }
 
 .summary{
   align-self:center;
-
-  padding:12px 26px;
-
+  max-width:100%;
+  padding:10px 22px;
   border-radius:999px;
-
   background:rgba(0,0,0,.45);
-
   color:#ffe56b;
-
-  font-size:20px;
+  font-size:18px;
   font-weight:900;
-
-  margin-bottom:14px;
+  line-height:1.35;
+  text-align:center;
+  margin-bottom:12px;
 }
 
 .resultGrid{
   width:100%;
   height:100%;
-
   display:grid;
-
-  grid-template-columns:
-  repeat(auto-fit,minmax(100px,1fr));
-
-  gap:14px;
-
+  grid-template-columns:repeat(auto-fit,minmax(90px,1fr));
+  gap:13px;
   overflow-y:auto;
-
-  padding-right:8px;
+  padding:0 6px 8px;
+  -webkit-overflow-scrolling:touch;
 }
 
 .itemWrap{
@@ -197,208 +127,148 @@ body.mobile{
 
 .itemWrap img{
   width:100%;
-  max-width:100px;
-
-  filter:
-  drop-shadow(0 4px 8px rgba(0,0,0,.6));
+  max-width:96px;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.6));
 }
 
 .count{
   margin-top:4px;
-
   width:90%;
-  height:26px;
-
+  height:25px;
   border-radius:8px;
-
   background:rgba(0,0,0,.72);
-
   display:flex;
   align-items:center;
   justify-content:center;
-
-  font-size:20px;
+  font-size:19px;
   font-weight:900;
 }
 
 .rarityTag{
   margin-top:4px;
-
-  padding:4px 10px;
-
+  padding:4px 8px;
   border-radius:999px;
-
   background:rgba(0,0,0,.5);
-
   color:#ffe56b;
-
   font-size:12px;
   font-weight:900;
+  white-space:nowrap;
 }
 
 .bottom{
   position:absolute;
-
-  left:15%;
-  right:5%;
+  left:3%;
+  right:3%;
   bottom:3%;
-
-  height:14%;
-
+  height:15%;
   border-radius:20px;
-
   background:rgba(70,58,120,.6);
-
   display:flex;
   align-items:center;
   justify-content:center;
-
-  gap:16px;
-
-  padding:0 20px;
+  gap:14px;
+  padding:10px 18px;
+  z-index:6;
 }
 
 .levelBox{
-  width:30%;
+  width:28%;
+  min-width:190px;
 }
 
 .levelTop{
   display:flex;
-  gap:12px;
-
-  font-size:22px;
+  gap:10px;
+  font-size:20px;
   font-weight:900;
-
   margin-bottom:6px;
 }
 
-.lv{
-  color:#ffd84d;
-}
+.lv{color:#ffd84d}
 
 .bar{
   height:12px;
-
   background:#1b1c25;
-
   border-radius:999px;
-
   overflow:hidden;
 }
 
 .fill{
   width:88%;
   height:100%;
-
   background:#ffd84d;
 }
 
 .btn{
   border:0;
-
   border-radius:14px;
-
   min-width:180px;
   height:64px;
-
   color:white;
-
-  font-size:28px;
+  font-size:24px;
   font-weight:900;
-
   cursor:pointer;
+  box-shadow:inset 0 2px rgba(255,255,255,.25),0 4px 10px rgba(0,0,0,.3);
 }
 
-.free{
-  background:linear-gradient(#ddd,#999);
-}
-
-.once{
-  background:
-  linear-gradient(#1dd8f0,#0688b0);
-}
-
-.ten{
-  background:
-  linear-gradient(#d7ff1e,#8fd300);
-}
+.free{background:linear-gradient(#ddd,#999)}
+.once{background:linear-gradient(#1dd8f0,#0688b0)}
+.ten{background:linear-gradient(#d7ff1e,#8fd300)}
 
 .rateInfo{
   position:absolute;
-
-  right:2%;
+  right:3%;
   bottom:1%;
-
-  font-size:13px;
+  font-size:12px;
   font-weight:900;
-
   color:rgba(255,255,255,.8);
+  z-index:7;
 }
 
 .modalMask{
   position:absolute;
   inset:0;
-
   background:rgba(0,0,0,.65);
-
   display:none;
-
   align-items:center;
   justify-content:center;
-
   z-index:50;
 }
 
 .modal{
-  width:680px;
-
+  width:min(680px,92vw);
   background:#f3f3f3;
-
   border:3px solid #333;
-
   border-radius:0 0 18px 18px;
-
   overflow:hidden;
 }
 
 .modalHead{
   height:52px;
-
-  background:
-  linear-gradient(#666,#222);
-
+  background:linear-gradient(#666,#222);
   display:flex;
   align-items:center;
   justify-content:center;
-
   color:white;
-
   font-size:24px;
   font-weight:900;
-
   position:relative;
 }
 
 .modalX{
   position:absolute;
   right:16px;
-
   font-size:34px;
-
   cursor:pointer;
 }
 
 .modalBody{
   padding:30px;
-
   display:flex;
   flex-direction:column;
   align-items:center;
-
   gap:24px;
-
   color:#333;
-
   font-size:22px;
   font-weight:900;
 }
@@ -406,173 +276,181 @@ body.mobile{
 .row{
   display:flex;
   align-items:center;
+  justify-content:center;
   gap:12px;
+  flex-wrap:wrap;
 }
 
 .aqua{
   border:2px solid #087989;
-
   border-radius:10px;
-
-  background:
-  linear-gradient(#28c9da,#0ca2bb);
-
+  background:linear-gradient(#28c9da,#0ca2bb);
   color:white;
-
   min-width:60px;
   height:40px;
-
   font-size:20px;
   font-weight:900;
-
   cursor:pointer;
 }
 
-.slider{
-  width:260px;
-}
+.slider{width:260px}
 
 .summonBtn{
   border:2px solid #75af00;
-
   border-radius:12px;
-
-  background:
-  linear-gradient(#d7ff1e,#8fd300);
-
+  background:linear-gradient(#d7ff1e,#8fd300);
   color:white;
-
   width:260px;
   height:56px;
-
   font-size:26px;
   font-weight:900;
-
   cursor:pointer;
 }
 
+/* 手機版 */
 @media(max-width:700px){
 
-  body.mobile .tabs{
-    left:2%;
-    top:14%;
-    width:20%;
-    gap:8px;
-  }
-
-  body.mobile .tab{
-    height:74px;
-    font-size:12px;
-    border-radius:12px;
-  }
-
-  body.mobile .top{
+  .top{
     top:2%;
+    left:3%;
+    right:3%;
   }
 
-  body.mobile .leftTitle{
+  .leftTitle{
+    font-size:20px;
+    gap:6px;
+  }
+
+  .back{
+    font-size:34px;
+  }
+
+  .currency{
     font-size:16px;
+    gap:10px;
   }
 
-  body.mobile .currency{
-    font-size:14px;
-  }
-
-  body.mobile .result{
-    left:23%;
+  .centerHint{
+    left:3%;
+    right:3%;
     top:11%;
-    width:74%;
-    height:60%;
-    padding:0 4px 8px;
-    overflow:hidden;
+    bottom:22%;
+    font-size:22px;
   }
 
-  body.mobile .summary{
+  .result{
+    left:3%;
+    right:3%;
+    top:11%;
+    bottom:22%;
+  }
+
+  .summary{
     width:100%;
     white-space:normal;
-    line-height:1.35;
-    text-align:center;
     font-size:12px;
-    padding:8px 10px;
-    margin-bottom:10px;
+    padding:7px 10px;
+    margin-bottom:8px;
   }
 
-  body.mobile .resultGrid{
-    width:100%;
-    height:100%;
-    overflow-y:auto;
-
-    grid-template-columns:
-    repeat(4,minmax(0,1fr));
-
-    gap:8px;
-
-    padding-right:4px;
+  .resultGrid{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:7px;
+    padding:0 4px 8px;
   }
 
-  body.mobile .itemWrap{
-    width:100%;
+  .itemWrap img{
+    max-width:58px;
   }
 
-  body.mobile .itemWrap img{
-    width:100%;
-    max-width:62px;
+  .count{
+    height:17px;
+    font-size:11px;
   }
 
-  body.mobile .count{
-    width:90%;
-    height:18px;
-    font-size:12px;
+  .rarityTag{
+    font-size:8px;
+    padding:2px 3px;
   }
 
-  body.mobile .rarityTag{
-    font-size:9px;
-    padding:2px 4px;
-  }
-
-  body.mobile .bottom{
-    left:2%;
-    right:2%;
-    bottom:2%;
-    height:14%;
+  .bottom{
+    left:3%;
+    right:3%;
+    bottom:3%;
+    height:16%;
     padding:8px;
     gap:6px;
     border-radius:16px;
   }
 
-  body.mobile .levelBox{
-    width:34%;
-    min-width:unset;
+  .levelBox{
+    width:30%;
+    min-width:0;
   }
 
-  body.mobile .levelTop{
-    font-size:11px;
+  .levelTop{
+    font-size:10px;
+    gap:4px;
+    flex-wrap:wrap;
   }
 
-  body.mobile .lv{
-    font-size:18px;
+  .bar{
+    height:9px;
   }
 
-  body.mobile .btn{
+  .btn{
     min-width:0;
     flex:1;
-    font-size:12px;
+    height:50px;
+    font-size:11px;
+    padding:3px;
     border-radius:10px;
   }
 
-  body.mobile .rateInfo{
-    font-size:9px;
-    bottom:1%;
+  .rateInfo{
+    display:none;
   }
 
-  body.mobile .modal{
-    width:92%;
+  .modal{
+    width:92vw;
   }
 
-  body.mobile .slider{
-    width:48vw;
+  .modalHead{
+    height:48px;
+    font-size:24px;
   }
 
+  .modalBody{
+    padding:24px 12px;
+    gap:20px;
+    font-size:20px;
+  }
+
+  .row{
+    gap:8px;
+  }
+
+  .aqua{
+    min-width:44px;
+    height:34px;
+    font-size:14px;
+  }
+
+  .slider{
+    width:46vw;
+  }
+
+  .summonBtn{
+    width:80%;
+    height:54px;
+    font-size:24px;
+  }
+}
+
+@media(max-width:390px){
+  .itemWrap img{max-width:52px}
+  .resultGrid{gap:5px}
+  .btn{font-size:10px}
 }
 </style>
 </head>
@@ -581,180 +459,91 @@ body.mobile{
 
 <div class="stage">
 
-<div class="stars"></div>
+  <div class="stars"></div>
 
-<div class="top">
+  <div class="top">
+    <div class="leftTitle">
+      <span class="back">‹</span>
+      <span>一般武器召喚</span>
+    </div>
 
-<div class="leftTitle">
-<span class="back">‹</span>
-<span>一般武器召喚</span>
-</div>
+    <div class="currency">
+      <span>🔷 0</span>
+      <span>💎 無限</span>
+    </div>
+  </div>
 
-<div class="currency">
-<span>🔷 0</span>
-<span>💎 無限</span>
-</div>
+  <div class="centerHint" id="centerHint">
+    點下方按鈕開始召喚
+  </div>
 
-</div>
+  <div class="result" id="result">
+    <div class="summary" id="summary"></div>
+    <div class="resultGrid" id="resultGrid"></div>
+  </div>
 
-<div class="tabs">
+  <div class="bottom">
+    <div class="levelBox">
+      <div class="levelTop">
+        <span>召喚等級 ⓘ</span>
+        <span class="lv">Lv.18</span>
+      </div>
+      <div class="bar">
+        <div class="fill"></div>
+      </div>
+    </div>
 
-<button class="tab active">
-武器召喚
-</button>
+    <button class="btn free" onclick="draw(1)">觀看廣告</button>
+    <button class="btn once" onclick="draw(1)">💎 1 召喚1次</button>
+    <button class="btn ten" onclick="openModal()">💎 10 一鍵召喚</button>
+  </div>
 
-<button class="tab">
-同伴召喚
-</button>
+  <div class="rateInfo">
+    武器機率：先抽稀有度，再抽低級/中級/高級/頂級
+  </div>
 
-<button class="tab">
-新同伴挑選
-</button>
+  <div class="modalMask" id="modalMask">
+    <div class="modal">
+      <div class="modalHead">
+        一鍵召喚
+        <span class="modalX" onclick="closeModal()">×</span>
+      </div>
 
-</div>
+      <div class="modalBody">
+        <div>最少召喚10個，以1為單位變更。</div>
 
-<div class="centerHint" id="centerHint">
-點下方按鈕開始召喚
-</div>
+        <div class="row">
+          <button class="aqua" onclick="setQty(10)">Min</button>
+          <button class="aqua" onclick="changeQty(-1)">－</button>
 
-<div class="result" id="result">
+          <span id="qtyText">10</span>
 
-<div class="summary" id="summary"></div>
+          <input
+            type="range"
+            class="slider"
+            min="10"
+            max="5000"
+            value="10"
+            id="qtySlider"
+            oninput="setQty(this.value)"
+          >
 
-<div class="resultGrid" id="resultGrid"></div>
+          <span>5000</span>
 
-</div>
+          <button class="aqua" onclick="changeQty(1)">＋</button>
+          <button class="aqua" onclick="setQty(5000)">Max</button>
+        </div>
 
-<div class="bottom">
-
-<div class="levelBox">
-
-<div class="levelTop">
-<span>召喚等級 ⓘ</span>
-<span class="lv">Lv.18</span>
-</div>
-
-<div class="bar">
-<div class="fill"></div>
-</div>
-
-</div>
-
-<button class="btn free">
-觀看廣告
-</button>
-
-<button class="btn once" onclick="draw(1)">
-💎 1 召喚1次
-</button>
-
-<button class="btn ten" onclick="openModal()">
-💎 10 一鍵召喚
-</button>
-
-</div>
-
-<div class="rateInfo">
-武器機率：先抽稀有度，再抽低級/中級/高級/頂級
-</div>
-
-<div class="modalMask" id="modalMask">
-
-<div class="modal">
-
-<div class="modalHead">
-一鍵召喚
-<span class="modalX" onclick="closeModal()">×</span>
-</div>
-
-<div class="modalBody">
-
-<div>
-最少召喚10個，以1為單位變更。
-</div>
-
-<div class="row">
-
-<button class="aqua" onclick="setQty(10)">
-Min
-</button>
-
-<button class="aqua" onclick="changeQty(-1)">
-－
-</button>
-
-<span id="qtyText">
-10
-</span>
-
-<input
-type="range"
-class="slider"
-min="10"
-max="5000"
-value="10"
-id="qtySlider"
-oninput="setQty(this.value)"
->
-
-<span>
-5000
-</span>
-
-<button class="aqua" onclick="changeQty(1)">
-＋
-</button>
-
-<button class="aqua" onclick="setQty(5000)">
-Max
-</button>
-
-</div>
-
-<button class="summonBtn" onclick="confirmDraw()">
-💎 <span id="costText">10</span> 召喚
-</button>
-
-</div>
-
-</div>
-
-</div>
+        <button class="summonBtn" onclick="confirmDraw()">
+          💎 <span id="costText">10</span> 召喚
+        </button>
+      </div>
+    </div>
+  </div>
 
 </div>
 
 <script>
-
-function detectDevice(){
-
-  const isMobile =
-    window.innerWidth <= 768 ||
-    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-  document.body.classList.toggle(
-    "mobile",
-    isMobile
-  );
-
-  document.body.classList.toggle(
-    "desktop",
-    !isMobile
-  );
-
-}
-
-detectDevice();
-
-window.addEventListener(
-  "resize",
-  detectDevice
-);
-
-window.addEventListener(
-  "orientationchange",
-  detectDevice
-);
-
 const weaponPool=[
 {id:1,rarity:"普通",tier:"低級",src:"weapon_01.png"},
 {id:2,rarity:"普通",tier:"中級",src:"weapon_02.png"},
@@ -812,52 +601,47 @@ const tierRates={
 遠古:{低級:50,中級:30,高級:15,頂級:5}
 };
 
+const rarityOrder={
+遠古:1,
+神話:2,
+傳說:3,
+罕見:4,
+史詩:5,
+稀有:6,
+普通:7
+};
+
+const tierOrder={
+頂級:1,
+高級:2,
+中級:3,
+低級:4
+};
+
 let summonQty=10;
 
 function weightedPick(obj){
-
-  const total=
-  Object.values(obj)
-  .reduce((a,b)=>a+b,0);
-
+  const total=Object.values(obj).reduce((a,b)=>a+b,0);
   let r=Math.random()*total;
 
   for(const key in obj){
-
     r-=obj[key];
-
-    if(r<=0){
-      return key;
-    }
-
+    if(r<=0)return key;
   }
 
+  return Object.keys(obj)[0];
 }
 
 function pickWeapon(){
+  const rarity=weightedPick(rarityRates);
+  const tier=weightedPick(tierRates[rarity]);
 
-  const rarity=
-  weightedPick(rarityRates);
+  const list=weaponPool.filter(w=>w.rarity===rarity && w.tier===tier);
 
-  const tier=
-  weightedPick(tierRates[rarity]);
-
-  const list=
-  weaponPool.filter(w=>
-    w.rarity===rarity &&
-    w.tier===tier
-  );
-
-  return list[
-    Math.floor(
-      Math.random()*list.length
-    )
-  ];
-
+  return list[Math.floor(Math.random()*list.length)];
 }
 
 function draw(times){
-
   const result=document.getElementById("result");
   const centerHint=document.getElementById("centerHint");
   const grid=document.getElementById("resultGrid");
@@ -875,85 +659,48 @@ function draw(times){
   const merged={};
 
   pool.forEach(item=>{
-
     if(!merged[item.id]){
-
-      merged[item.id]={
-        ...item,
-        count:0
-      };
-
+      merged[item.id]={...item,count:0};
     }
-
     merged[item.id].count++;
-
   });
 
-  const final=
-  Object.values(merged);
+  const final=Object.values(merged).sort((a,b)=>{
+    const r=rarityOrder[a.rarity]-rarityOrder[b.rarity];
+    if(r!==0)return r;
+
+    const t=tierOrder[a.tier]-tierOrder[b.tier];
+    if(t!==0)return t;
+
+    return a.id-b.id;
+  });
 
   summary.innerHTML=
-  `本次召喚 ${times.toLocaleString()} 抽｜共 ${final.length} 種武器｜官方邏輯：先抽稀有度，再抽品質`;
+    `本次召喚 ${times.toLocaleString()} 抽｜共 ${final.length} 種武器｜官方邏輯：先抽稀有度，再抽品質`;
 
-  grid.innerHTML=
-  final.map(item=>`
-
-  <div class="itemWrap">
-
-    <img src="${item.src}">
-
-    <div class="count">
-      ${item.count}
+  grid.innerHTML=final.map(item=>`
+    <div class="itemWrap">
+      <img src="${item.src}" alt="${item.rarity}${item.tier}">
+      <div class="count">${item.count.toLocaleString()}</div>
+      <div class="rarityTag">${item.rarity}${item.tier}</div>
     </div>
-
-    <div class="rarityTag">
-      ${item.rarity}${item.tier}
-    </div>
-
-  </div>
-
   `).join("");
-
 }
 
 function openModal(){
-
-  document.getElementById(
-    "modalMask"
-  ).style.display="flex";
-
+  document.getElementById("modalMask").style.display="flex";
 }
 
 function closeModal(){
-
-  document.getElementById(
-    "modalMask"
-  ).style.display="none";
-
+  document.getElementById("modalMask").style.display="none";
 }
 
 function setQty(v){
+  summonQty=Math.max(10,Math.min(5000,parseInt(v)||10));
 
-  summonQty=
-  Math.max(
-    10,
-    Math.min(5000,parseInt(v))
-  );
-
-  document.getElementById(
-    "qtySlider"
-  ).value=summonQty;
-
-  document.getElementById(
-    "qtyText"
-  ).innerText=
-  summonQty.toLocaleString();
-
-  document.getElementById(
-    "costText"
-  ).innerText=
-  summonQty.toLocaleString();
-
+  document.getElementById("qtySlider").value=summonQty;
+  document.getElementById("qtyText").innerText=summonQty.toLocaleString();
+  document.getElementById("costText").innerText=summonQty.toLocaleString();
 }
 
 function changeQty(v){
@@ -961,13 +708,11 @@ function changeQty(v){
 }
 
 function confirmDraw(){
-
   closeModal();
-
   draw(summonQty);
-
 }
 
+setQty(10);
 </script>
 
 </body>
