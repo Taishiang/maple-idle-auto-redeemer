@@ -1,879 +1,973 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>召喚模擬器 V15｜官方二段式機率版</title>
 
 <style>
-*{box-sizing:border-box}
-
-html,body{
-  margin:0;width:100%;height:100%;
-  background:#05070d;
-  font-family:"Microsoft JhengHei",Arial,sans-serif;
-  overflow:hidden;color:#fff;
+*{
+  box-sizing:border-box;
 }
 
-.wrap{
-  width:100vw;height:100vh;
-  display:flex;
-  align-items:flex-start;
-  justify-content:center;
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
   background:#05070d;
+  font-family:"Microsoft JhengHei",sans-serif;
+  color:#fff;
+}
+
+body.mobile{
   overflow:hidden;
 }
 
 .stage{
   position:relative;
-  width:100vw;height:100vh;
+  width:100vw;
+  height:100vh;
   overflow:hidden;
+
   background:
-    radial-gradient(circle at 50% 44%,rgba(126,77,255,.72),rgba(37,18,92,.82) 42%,rgba(8,7,24,1) 82%),
-    linear-gradient(180deg,#111034,#674bd2);
+  radial-gradient(circle at center,
+  rgba(120,70,255,.75),
+  rgba(32,18,92,.92) 45%,
+  #05070d 85%);
 }
 
 .stars{
-  position:absolute;inset:0;opacity:.42;
+  position:absolute;
+  inset:0;
+  opacity:.35;
+
   background-image:
-    radial-gradient(circle,rgba(255,255,255,.9) 0 1px,transparent 2px),
-    radial-gradient(circle,rgba(255,255,255,.55) 0 1px,transparent 2px);
-  background-size:96px 76px,150px 118px;
+  radial-gradient(circle,white 1px,transparent 2px);
+
+  background-size:80px 80px;
 }
 
 .top{
-  position:absolute;left:2.7%;right:2.6%;top:2.6%;
+  position:absolute;
+  left:2%;
+  right:2%;
+  top:2%;
   height:7%;
-  display:flex;align-items:center;justify-content:space-between;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
   z-index:5;
 }
 
 .leftTitle{
-  display:flex;align-items:center;gap:1.2vw;
-  font-size:clamp(18px,2vw,34px);
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+  font-size:34px;
   font-weight:900;
-  text-shadow:0 2px 4px rgba(0,0,0,.55);
 }
 
 .back{
-  font-size:clamp(32px,4vw,58px);
-  line-height:1;
-  font-weight:900;
+  font-size:52px;
 }
 
 .currency{
-  display:flex;align-items:center;gap:2vw;
-  font-size:clamp(14px,1.45vw,25px);
+  display:flex;
+  gap:22px;
+  font-size:24px;
   font-weight:900;
-  text-shadow:0 2px 4px rgba(0,0,0,.55);
 }
 
 .tabs{
-  position:absolute;left:2.5%;top:17%;width:17%;
-  display:flex;flex-direction:column;gap:1.2vh;
-  z-index:4;
+  position:absolute;
+  left:2%;
+  top:15%;
+  width:15%;
+
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+
+  z-index:5;
 }
 
 .tab{
-  height:clamp(44px,8.2vh,86px);
-  border:0;border-radius:14px;
-  background:rgba(0,0,0,.34);
-  color:#fff;
-  font-size:clamp(14px,1.25vw,22px);
+  border:0;
+  height:90px;
+  border-radius:18px;
+
+  background:rgba(0,0,0,.35);
+
+  color:white;
+
+  font-size:28px;
   font-weight:900;
-  box-shadow:inset 0 1px rgba(255,255,255,.2),0 4px 8px rgba(0,0,0,.24);
+
   cursor:pointer;
-  text-align:left;
-  padding-left:1.2vw;
 }
 
 .tab.active{
-  background:linear-gradient(180deg,#31d8e9,#078ba8);
-  box-shadow:0 0 18px rgba(44,223,255,.55);
+  background:
+  linear-gradient(
+  180deg,
+  #34dfff,
+  #0a90b8
+  );
+
+  box-shadow:
+  0 0 18px rgba(52,223,255,.7);
 }
 
 .centerHint{
   position:absolute;
-  left:23%;right:6%;top:16%;bottom:22%;
-  border-radius:18px;
-  background:rgba(0,0,0,.08);
+
+  left:19%;
+  right:3%;
+  top:11%;
+  bottom:20%;
+
+  border-radius:22px;
+
   display:flex;
   align-items:center;
   justify-content:center;
-  color:rgba(255,255,255,.72);
-  font-size:clamp(18px,2vw,32px);
+
+  color:rgba(255,255,255,.7);
+
+  font-size:34px;
   font-weight:900;
-  text-shadow:0 2px 5px rgba(0,0,0,.5);
+}
+
+.result{
+  position:absolute;
+
+  left:19%;
+  right:3%;
+  top:11%;
+  bottom:20%;
+
+  display:none;
+  flex-direction:column;
+
+  z-index:10;
+}
+
+.summary{
+  align-self:center;
+
+  padding:12px 26px;
+
+  border-radius:999px;
+
+  background:rgba(0,0,0,.45);
+
+  color:#ffe56b;
+
+  font-size:20px;
+  font-weight:900;
+
+  margin-bottom:14px;
+}
+
+.resultGrid{
+  width:100%;
+  height:100%;
+
+  display:grid;
+
+  grid-template-columns:
+  repeat(auto-fit,minmax(100px,1fr));
+
+  gap:14px;
+
+  overflow-y:auto;
+
+  padding-right:8px;
+}
+
+.itemWrap{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.itemWrap img{
+  width:100%;
+  max-width:100px;
+
+  filter:
+  drop-shadow(0 4px 8px rgba(0,0,0,.6));
+}
+
+.count{
+  margin-top:4px;
+
+  width:90%;
+  height:26px;
+
+  border-radius:8px;
+
+  background:rgba(0,0,0,.72);
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:20px;
+  font-weight:900;
+}
+
+.rarityTag{
+  margin-top:4px;
+
+  padding:4px 10px;
+
+  border-radius:999px;
+
+  background:rgba(0,0,0,.5);
+
+  color:#ffe56b;
+
+  font-size:12px;
+  font-weight:900;
 }
 
 .bottom{
   position:absolute;
-  left:16.5%;right:8%;bottom:5.5%;
-  height:13.5%;
-  border-radius:16px;
-  background:rgba(84,72,128,.58);
+
+  left:15%;
+  right:5%;
+  bottom:3%;
+
+  height:14%;
+
+  border-radius:20px;
+
+  background:rgba(70,58,120,.6);
+
   display:flex;
   align-items:center;
   justify-content:center;
-  padding:0 2%;
-  gap:1.2vw;
-  z-index:4;
+
+  gap:16px;
+
+  padding:0 20px;
 }
 
 .levelBox{
-  width:28%;
-  min-width:210px;
+  width:30%;
 }
 
 .levelTop{
   display:flex;
-  align-items:center;
-  gap:1.2vw;
-  font-size:clamp(14px,1.25vw,22px);
+  gap:12px;
+
+  font-size:22px;
   font-weight:900;
-  margin-bottom:.65vh;
+
+  margin-bottom:6px;
 }
 
 .lv{
   color:#ffd84d;
-  font-size:clamp(18px,1.7vw,30px);
 }
 
 .bar{
-  height:clamp(7px,1vh,12px);
-  background:#20222b;
+  height:12px;
+
+  background:#1b1c25;
+
   border-radius:999px;
+
   overflow:hidden;
-  border:2px solid rgba(0,0,0,.45);
 }
 
 .fill{
-  height:100%;
   width:88%;
-  background:#ffd83b;
+  height:100%;
+
+  background:#ffd84d;
 }
 
 .btn{
-  height:52%;
-  min-width:17%;
   border:0;
-  border-radius:10px;
-  color:#fff;
-  font-size:clamp(15px,1.45vw,26px);
+
+  border-radius:14px;
+
+  min-width:180px;
+  height:64px;
+
+  color:white;
+
+  font-size:28px;
   font-weight:900;
+
   cursor:pointer;
-  box-shadow:inset 0 2px rgba(255,255,255,.28),0 4px 8px rgba(0,0,0,.25);
 }
 
 .free{
-  background:linear-gradient(#ddd,#aaa);
-  opacity:.75;
-  color:white;
+  background:linear-gradient(#ddd,#999);
 }
 
 .once{
-  background:linear-gradient(#18d0e3,#078eae);
+  background:
+  linear-gradient(#1dd8f0,#0688b0);
 }
 
 .ten{
-  background:linear-gradient(#c8f218,#88c500);
+  background:
+  linear-gradient(#d7ff1e,#8fd300);
 }
 
-.cost{
-  font-size:clamp(12px,1vw,18px);
-  margin-right:.6vw;
-}
+.rateInfo{
+  position:absolute;
 
-/* 彈窗 */
+  right:2%;
+  bottom:1%;
+
+  font-size:13px;
+  font-weight:900;
+
+  color:rgba(255,255,255,.8);
+}
 
 .modalMask{
-  padding:20px;
   position:absolute;
   inset:0;
-  background:rgba(0,0,0,.62);
+
+  background:rgba(0,0,0,.65);
+
   display:none;
+
   align-items:center;
   justify-content:center;
-  z-index:20;
+
+  z-index:50;
 }
 
 .modal{
-  width:min(680px,72vw);
-  min-height:34%;
-  background:#f4f4f4;
-  color:#333;
+  width:680px;
+
+  background:#f3f3f3;
+
   border:3px solid #333;
-  border-radius:0 0 16px 16px;
-  box-shadow:0 4px 0 rgba(255,255,255,.4) inset,0 8px 22px rgba(0,0,0,.45);
-  overflow:visible;
+
+  border-radius:0 0 18px 18px;
+
+  overflow:hidden;
 }
 
 .modalHead{
-  height:46px;
-  background:linear-gradient(#6d6d6d,#252525);
-  color:white;
+  height:52px;
+
+  background:
+  linear-gradient(#666,#222);
+
   display:flex;
   align-items:center;
   justify-content:center;
+
+  color:white;
+
+  font-size:24px;
   font-weight:900;
+
   position:relative;
 }
 
 .modalX{
   position:absolute;
-  right:14px;
-  top:50%;
-  transform:translateY(-50%);
-  font-size:32px;
+  right:16px;
+
+  font-size:34px;
+
   cursor:pointer;
 }
 
 .modalBody{
-  padding:28px 24px 26px;
+  padding:30px;
+
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:18px;
+
+  gap:24px;
+
+  color:#333;
+
+  font-size:22px;
   font-weight:900;
 }
 
 .row{
   display:flex;
   align-items:center;
-  justify-content:center;
-  gap:10px;
-  width:100%;
-  flex-wrap:wrap;
-  font-size:clamp(13px,1.05vw,17px);
+  gap:12px;
 }
 
 .aqua{
-  min-width:46px;
-  height:34px;
-  padding:0 12px;
   border:2px solid #087989;
-  border-radius:8px;
-  background:linear-gradient(#28c9da,#0ca2bb);
+
+  border-radius:10px;
+
+  background:
+  linear-gradient(#28c9da,#0ca2bb);
+
   color:white;
+
+  min-width:60px;
+  height:40px;
+
+  font-size:20px;
   font-weight:900;
+
   cursor:pointer;
 }
 
 .slider{
-  width:min(220px,28vw);
-  accent-color:#777;
+  width:260px;
 }
 
 .summonBtn{
-  width:30%;
-  min-width:170px;
-  height:42px;
-  border:2px solid #69a400;
-  border-radius:9px;
-  background:linear-gradient(#cfff21,#8dd600);
+  border:2px solid #75af00;
+
+  border-radius:12px;
+
+  background:
+  linear-gradient(#d7ff1e,#8fd300);
+
   color:white;
-  font-size:17px;
+
+  width:260px;
+  height:56px;
+
+  font-size:26px;
   font-weight:900;
+
   cursor:pointer;
-}
-
-/* 結果 */
-
-.result{
-  position:absolute;
-  left:18.5%;
-  top:11%;
-  width:78%;
-  height:57%;
-  display:none;
-  z-index:12;
-  background:transparent;
-  border-radius:18px;
-  flex-direction:column;
-  align-items:center;
-  justify-content:flex-start;
-  overflow:hidden;
-  padding:0 1.2% 1.2%;
-}
-
-.summary{
-  position:relative;
-  margin-bottom:16px;
-  padding:.45vw 1.1vw;
-  border-radius:999px;
-  background:rgba(0,0,0,.36);
-  color:#ffe56b;
-  font-size:clamp(12px,.95vw,17px);
-  font-weight:900;
-  text-shadow:0 2px 3px rgba(0,0,0,.5);
-  white-space:nowrap;
-  z-index:2;
-}
-
-.resultGrid{
-  width:100%;
-  max-width:1280px;
-  height:calc(100% - 44px);
-  margin:0 auto;
-  display:grid;
-  grid-template-columns:repeat(10,minmax(74px,1fr));
-  grid-auto-rows:auto;
-  column-gap:clamp(10px,1.25vw,22px);
-  row-gap:clamp(10px,1.05vw,18px);
-  justify-items:center;
-  align-content:start;
-  align-items:start;
-  overflow:hidden;
-  padding-top:0;
-}
-
-.itemWrap{
-  width:clamp(70px,6.4vw,118px);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  animation:pop .18s ease both;
-}
-
-.itemWrap img{
-  width:100%;
-  height:auto;
-  filter:drop-shadow(0 .25vw .34vw rgba(0,0,0,.72));
-}
-
-.count{
-  margin-top:4px;
-  width:94%;
-  height:clamp(18px,1.45vw,26px);
-  border-radius:6px;
-  background:rgba(28,25,35,.95);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:white;
-  font-size:clamp(14px,1.12vw,20px);
-  font-weight:900;
-  text-shadow:0 1px 2px rgba(0,0,0,.65);
-}
-
-.rarityTag{
-  margin-top:3px;
-  padding:2px 6px;
-  border-radius:999px;
-  background:rgba(0,0,0,.42);
-  color:#ffe56b;
-  font-size:clamp(9px,.72vw,12px);
-  font-weight:900;
-  line-height:1.15;
-  white-space:nowrap;
-  text-shadow:0 1px 2px rgba(0,0,0,.65);
-}
-
-.resultClose{
-  position:absolute;
-  right:1.2%;
-  top:1.2%;
-  height:28px;
-  min-width:56px;
-  border:0;
-  border-radius:8px;
-  background:linear-gradient(#ff7f7f,#d52d2d);
-  color:white;
-  font-weight:900;
-  cursor:pointer;
-  font-size:12px;
-  z-index:3;
-}
-
-.placeholderCard{
-  width:86%;
-  min-height:50%;
-  border:3px solid #81ecff;
-  border-radius:20px;
-  background:linear-gradient(180deg,#26346b,#101525);
-  box-shadow:0 0 30px #44dfff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-direction:column;
-  gap:14px;
-  text-align:center;
-  font-size:clamp(18px,2vw,32px);
-  font-weight:900;
-}
-
-.rateInfo{
-  position:absolute;
-  right:2.2%;
-  bottom:2.2%;
-  padding:.35vw .7vw;
-  border-radius:999px;
-  background:rgba(0,0,0,.28);
-  color:rgba(255,255,255,.82);
-  font-size:clamp(10px,.75vw,13px);
-  font-weight:800;
-  z-index:6;
-  pointer-events:none;
-}
-
-@keyframes pop{
-  from{opacity:0;transform:translateY(-10px) scale(.86)}
-  to{opacity:1;transform:translateY(0) scale(1)}
-}
-
-.resultGrid.few{
-  grid-template-columns:repeat(auto-fit,minmax(90px,120px));
-  justify-content:start;
-}
-
-.resultGrid.few .itemWrap{
-  width:clamp(82px,7vw,126px);
-}
-
-.resultGrid.full .itemWrap{
-  width:clamp(66px,5.9vw,108px);
 }
 
 @media(max-width:700px){
-  .modal{
-    width:92%;
-    min-height:36%;
+
+  body.mobile .tabs{
+    left:2%;
+    top:14%;
+    width:20%;
+    gap:8px;
   }
 
-  .row{
+  body.mobile .tab{
+    height:74px;
+    font-size:12px;
+    border-radius:12px;
+  }
+
+  body.mobile .top{
+    top:2%;
+  }
+
+  body.mobile .leftTitle{
+    font-size:16px;
+  }
+
+  body.mobile .currency{
+    font-size:14px;
+  }
+
+  body.mobile .result{
+    left:23%;
+    top:11%;
+    width:74%;
+    height:60%;
+    padding:0 4px 8px;
+    overflow:hidden;
+  }
+
+  body.mobile .summary{
+    width:100%;
+    white-space:normal;
+    line-height:1.35;
+    text-align:center;
+    font-size:12px;
+    padding:8px 10px;
+    margin-bottom:10px;
+  }
+
+  body.mobile .resultGrid{
+    width:100%;
+    height:100%;
+    overflow-y:auto;
+
+    grid-template-columns:
+    repeat(4,minmax(0,1fr));
+
+    gap:8px;
+
+    padding-right:4px;
+  }
+
+  body.mobile .itemWrap{
+    width:100%;
+  }
+
+  body.mobile .itemWrap img{
+    width:100%;
+    max-width:62px;
+  }
+
+  body.mobile .count{
+    width:90%;
+    height:18px;
+    font-size:12px;
+  }
+
+  body.mobile .rarityTag{
+    font-size:9px;
+    padding:2px 4px;
+  }
+
+  body.mobile .bottom{
+    left:2%;
+    right:2%;
+    bottom:2%;
+    height:14%;
+    padding:8px;
     gap:6px;
-    flex-wrap:wrap;
+    border-radius:16px;
   }
 
-  .slider{
+  body.mobile .levelBox{
+    width:34%;
+    min-width:unset;
+  }
+
+  body.mobile .levelTop{
+    font-size:11px;
+  }
+
+  body.mobile .lv{
+    font-size:18px;
+  }
+
+  body.mobile .btn{
+    min-width:0;
+    flex:1;
+    font-size:12px;
+    border-radius:10px;
+  }
+
+  body.mobile .rateInfo{
+    font-size:9px;
+    bottom:1%;
+  }
+
+  body.mobile .modal{
+    width:92%;
+  }
+
+  body.mobile .slider{
     width:48vw;
   }
 
-  .aqua{
-    min-width:42px;
-    height:32px;
-    padding:0 9px;
-  }
-
-  .result{
-    left:18.5%;
-    top:11%;
-    width:78%;
-    height:57%;
-    padding:3% 1.2%;
-  }
-
-  .summary{
-    white-space:normal;
-    text-align:center;
-    line-height:1.4;
-  }
-
-  .resultGrid{
-    width:94%;
-    grid-template-columns:repeat(auto-fit,minmax(48px,1fr));
-    gap:6px;
-  }
-
-  .itemWrap{
-    width:clamp(44px,12vw,64px);
-  }
-
-  .count{
-    height:16px;
-    font-size:12px;
-  }
-
-  .tabs{
-    left:2%;
-    top:13%;
-    width:22%;
-  }
-
-  .bottom{
-    left:3%;
-    right:3%;
-    height:15%;
-    gap:1vw;
-  }
-
-  .levelBox{
-    width:28%;
-  }
-
-  .btn{
-    min-width:18%;
-    font-size:12px;
-  }
 }
 </style>
 </head>
 
 <body>
 
-<div class="wrap">
-  <div class="stage" id="stage">
+<div class="stage">
 
-    <div class="stars"></div>
+<div class="stars"></div>
 
-    <div class="rateInfo" id="rateInfo">
-      武器機率：先抽稀有度，再抽低級/中級/高級/頂級
-    </div>
+<div class="top">
 
-    <div class="top">
-      <div class="leftTitle">
-        <span class="back">‹</span>
-        <span id="pageTitle">一般武器召喚</span>
-      </div>
+<div class="leftTitle">
+<span class="back">‹</span>
+<span>一般武器召喚</span>
+</div>
 
-      <div class="currency">
-        <span>🔷 0</span>
-        <span>💎 無限</span>
-      </div>
-    </div>
+<div class="currency">
+<span>🔷 0</span>
+<span>💎 無限</span>
+</div>
 
-    <div class="tabs">
-      <button class="tab active" id="tabWeapon" onclick="setMode('weapon')">武器召喚</button>
-      <button class="tab" id="tabPartner" onclick="setMode('partner')">同伴召喚</button>
-      <button class="tab" id="tabSelect" onclick="setMode('select')">新同伴挑選</button>
-    </div>
+</div>
 
-    <div class="centerHint" id="centerHint">
-      點下方按鈕開始召喚
-    </div>
+<div class="tabs">
 
-    <div class="bottom">
-      <div class="levelBox">
-        <div class="levelTop">
-          <span>召喚等級 ⓘ</span>
-          <span class="lv" id="levelText">Lv.18</span>
-        </div>
-        <div class="bar">
-          <div class="fill"></div>
-        </div>
-      </div>
+<button class="tab active">
+武器召喚
+</button>
 
-      <button class="btn free" onclick="draw(1)">觀看廣告</button>
+<button class="tab">
+同伴召喚
+</button>
 
-      <button class="btn once" onclick="draw(1)">
-        <span class="cost" id="onceCost">💎 1</span>召喚1次
-      </button>
+<button class="tab">
+新同伴挑選
+</button>
 
-      <button class="btn ten" onclick="openModal()">
-        <span class="cost" id="multiCost">💎 10</span>一鍵召喚
-      </button>
-    </div>
+</div>
 
-    <div class="modalMask" id="modalMask">
-      <div class="modal">
-        <div class="modalHead">
-          一鍵召喚
-          <span class="modalX" onclick="closeModal()">×</span>
-        </div>
+<div class="centerHint" id="centerHint">
+點下方按鈕開始召喚
+</div>
 
-        <div class="modalBody">
-          <div id="modalHint">最少召喚10個，以1為單位變更。</div>
+<div class="result" id="result">
 
-          <div class="row">
-            <button class="aqua" onclick="setQty(10)">Min</button>
-            <button class="aqua" onclick="changeQty(-1)">－</button>
+<div class="summary" id="summary"></div>
 
-            <span id="amountLeft">10</span>
+<div class="resultGrid" id="resultGrid"></div>
 
-            <input id="qtyRange" class="slider" type="range" min="10" max="5000" value="10" oninput="setQty(+this.value)">
+</div>
 
-            <span id="maxText">5000</span>
-            <span id="amountTop" style="display:none">10</span>
+<div class="bottom">
 
-            <button class="aqua" onclick="changeQty(1)">＋</button>
-            <button class="aqua" onclick="setQty(getMax())">Max</button>
-          </div>
+<div class="levelBox">
 
-          <button class="summonBtn" onclick="confirmDraw()">
-            💎 <span id="costText">10</span>　召喚
-          </button>
-        </div>
-      </div>
-    </div>
+<div class="levelTop">
+<span>召喚等級 ⓘ</span>
+<span class="lv">Lv.18</span>
+</div>
 
-    <div class="result" id="result">
-      <div class="summary" id="summary"></div>
-      <div class="resultGrid" id="resultGrid"></div>
-      <button class="resultClose" onclick="closeResult()">關閉</button>
-    </div>
+<div class="bar">
+<div class="fill"></div>
+</div>
 
-  </div>
+</div>
+
+<button class="btn free">
+觀看廣告
+</button>
+
+<button class="btn once" onclick="draw(1)">
+💎 1 召喚1次
+</button>
+
+<button class="btn ten" onclick="openModal()">
+💎 10 一鍵召喚
+</button>
+
+</div>
+
+<div class="rateInfo">
+武器機率：先抽稀有度，再抽低級/中級/高級/頂級
+</div>
+
+<div class="modalMask" id="modalMask">
+
+<div class="modal">
+
+<div class="modalHead">
+一鍵召喚
+<span class="modalX" onclick="closeModal()">×</span>
+</div>
+
+<div class="modalBody">
+
+<div>
+最少召喚10個，以1為單位變更。
+</div>
+
+<div class="row">
+
+<button class="aqua" onclick="setQty(10)">
+Min
+</button>
+
+<button class="aqua" onclick="changeQty(-1)">
+－
+</button>
+
+<span id="qtyText">
+10
+</span>
+
+<input
+type="range"
+class="slider"
+min="10"
+max="5000"
+value="10"
+id="qtySlider"
+oninput="setQty(this.value)"
+>
+
+<span>
+5000
+</span>
+
+<button class="aqua" onclick="changeQty(1)">
+＋
+</button>
+
+<button class="aqua" onclick="setQty(5000)">
+Max
+</button>
+
+</div>
+
+<button class="summonBtn" onclick="confirmDraw()">
+💎 <span id="costText">10</span> 召喚
+</button>
+
+</div>
+
+</div>
+
+</div>
+
 </div>
 
 <script>
+
+function detectDevice(){
+
+  const isMobile =
+    window.innerWidth <= 768 ||
+    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  document.body.classList.toggle(
+    "mobile",
+    isMobile
+  );
+
+  document.body.classList.toggle(
+    "desktop",
+    !isMobile
+  );
+
+}
+
+detectDevice();
+
+window.addEventListener(
+  "resize",
+  detectDevice
+);
+
+window.addEventListener(
+  "orientationchange",
+  detectDevice
+);
+
 const weaponPool=[
-{"id":1,"series":"白色系列","tier":"低級","src":"weapon_01.png"},
-{"id":2,"series":"白色系列","tier":"中級","src":"weapon_02.png"},
-{"id":3,"series":"白色系列","tier":"高級","src":"weapon_03.png"},
-{"id":4,"series":"白色系列","tier":"頂級","src":"weapon_04.png"},
+{id:1,rarity:"普通",tier:"低級",src:"weapon_01.png"},
+{id:2,rarity:"普通",tier:"中級",src:"weapon_02.png"},
+{id:3,rarity:"普通",tier:"高級",src:"weapon_03.png"},
+{id:4,rarity:"普通",tier:"頂級",src:"weapon_04.png"},
 
-{"id":5,"series":"藍色系列","tier":"低級","src":"weapon_05.png"},
-{"id":6,"series":"藍色系列","tier":"中級","src":"weapon_06.png"},
-{"id":7,"series":"藍色系列","tier":"高級","src":"weapon_07.png"},
-{"id":8,"series":"藍色系列","tier":"頂級","src":"weapon_08.png"},
+{id:5,rarity:"稀有",tier:"低級",src:"weapon_05.png"},
+{id:6,rarity:"稀有",tier:"中級",src:"weapon_06.png"},
+{id:7,rarity:"稀有",tier:"高級",src:"weapon_07.png"},
+{id:8,rarity:"稀有",tier:"頂級",src:"weapon_08.png"},
 
-{"id":9,"series":"紫色系列","tier":"低級","src":"weapon_09.png"},
-{"id":10,"series":"紫色系列","tier":"中級","src":"weapon_10.png"},
-{"id":11,"series":"紫色系列","tier":"高級","src":"weapon_11.png"},
-{"id":12,"series":"紫色系列","tier":"頂級","src":"weapon_12.png"},
+{id:9,rarity:"史詩",tier:"低級",src:"weapon_09.png"},
+{id:10,rarity:"史詩",tier:"中級",src:"weapon_10.png"},
+{id:11,rarity:"史詩",tier:"高級",src:"weapon_11.png"},
+{id:12,rarity:"史詩",tier:"頂級",src:"weapon_12.png"},
 
-{"id":13,"series":"橘色系列","tier":"低級","src":"weapon_13.png"},
-{"id":14,"series":"橘色系列","tier":"中級","src":"weapon_14.png"},
-{"id":15,"series":"橘色系列","tier":"高級","src":"weapon_15.png"},
-{"id":16,"series":"橘色系列","tier":"頂級","src":"weapon_16.png"},
+{id:13,rarity:"罕見",tier:"低級",src:"weapon_13.png"},
+{id:14,rarity:"罕見",tier:"中級",src:"weapon_14.png"},
+{id:15,rarity:"罕見",tier:"高級",src:"weapon_15.png"},
+{id:16,rarity:"罕見",tier:"頂級",src:"weapon_16.png"},
 
-{"id":17,"series":"綠色系列","tier":"低級","src":"weapon_17.png"},
-{"id":18,"series":"綠色系列","tier":"中級","src":"weapon_18.png"},
-{"id":19,"series":"綠色系列","tier":"高級","src":"weapon_19.png"},
-{"id":20,"series":"綠色系列","tier":"頂級","src":"weapon_20.png"},
+{id:17,rarity:"傳說",tier:"低級",src:"weapon_17.png"},
+{id:18,rarity:"傳說",tier:"中級",src:"weapon_18.png"},
+{id:19,rarity:"傳說",tier:"高級",src:"weapon_19.png"},
+{id:20,rarity:"傳說",tier:"頂級",src:"weapon_20.png"},
 
-{"id":21,"series":"紅色系列","tier":"低級","src":"weapon_21.png"},
-{"id":22,"series":"紅色系列","tier":"中級","src":"weapon_22.png"},
-{"id":23,"series":"紅色系列","tier":"高級","src":"weapon_23.png"},
-{"id":24,"series":"紅色系列","tier":"頂級","src":"weapon_24.png"},
+{id:21,rarity:"神話",tier:"低級",src:"weapon_21.png"},
+{id:22,rarity:"神話",tier:"中級",src:"weapon_22.png"},
+{id:23,rarity:"神話",tier:"高級",src:"weapon_23.png"},
+{id:24,rarity:"神話",tier:"頂級",src:"weapon_24.png"},
 
-{"id":25,"series":"深藍特殊系列","tier":"低級","src":"weapon_25.png"},
-{"id":26,"series":"深藍特殊系列","tier":"中級","src":"weapon_26.png"},
-{"id":27,"series":"深藍特殊系列","tier":"高級","src":"weapon_27.png"},
-{"id":28,"series":"深藍特殊系列","tier":"頂級","src":"weapon_28.png"}
+{id:25,rarity:"遠古",tier:"低級",src:"weapon_25.png"},
+{id:26,rarity:"遠古",tier:"中級",src:"weapon_26.png"},
+{id:27,rarity:"遠古",tier:"高級",src:"weapon_27.png"},
+{id:28,rarity:"遠古",tier:"頂級",src:"weapon_28.png"}
 ];
 
 const rarityRates={
-  '普通':39.264,
-  '稀有':49.7,
-  '史詩':7.1,
-  '罕見':3.3,
-  '傳說':0.4,
-  '神話':0.22,
-  '遠古':0.016
+普通:39.264,
+稀有:49.7,
+史詩:7.1,
+罕見:3.3,
+傳說:0.4,
+神話:0.22,
+遠古:0.016
 };
 
-const qualityRates={
-  '普通':{'低級':40,'中級':30,'高級':20,'頂級':10},
-  '稀有':{'低級':40,'中級':30,'高級':20,'頂級':10},
-  '史詩':{'低級':40,'中級':30,'高級':20,'頂級':10},
-  '罕見':{'低級':40,'中級':30,'高級':20,'頂級':10},
-  '傳說':{'低級':40,'中級':30,'高級':20,'頂級':10},
-  '神話':{'低級':40,'中級':33,'高級':20,'頂級':7},
-  '遠古':{'低級':50,'中級':30,'高級':15,'頂級':5}
+const tierRates={
+普通:{低級:40,中級:30,高級:20,頂級:10},
+稀有:{低級:40,中級:30,高級:20,頂級:10},
+史詩:{低級:40,中級:30,高級:20,頂級:10},
+罕見:{低級:40,中級:30,高級:20,頂級:10},
+傳說:{低級:40,中級:30,高級:20,頂級:10},
+神話:{低級:40,中級:33,高級:20,頂級:7},
+遠古:{低級:50,中級:30,高級:15,頂級:5}
 };
 
-const raritySeriesMap={
-  '普通':'白色系列',
-  '稀有':'藍色系列',
-  '史詩':'紫色系列',
-  '罕見':'橘色系列',
-  '傳說':'綠色系列',
-  '神話':'紅色系列',
-  '遠古':'深藍特殊系列'
-};
+let summonQty=10;
 
-const rarityOrder={
-  '遠古':1,
-  '神話':2,
-  '傳說':3,
-  '罕見':4,
-  '史詩':5,
-  '稀有':6,
-  '普通':7
-};
+function weightedPick(obj){
 
-const tierOrder={
-  '頂級':1,
-  '高級':2,
-  '中級':3,
-  '低級':4
-};
+  const total=
+  Object.values(obj)
+  .reduce((a,b)=>a+b,0);
 
-let mode='weapon';
-let qty=10;
-
-function getMax(){
-  return mode==='weapon' ? 5000 : 100;
-}
-
-function getUnitCost(){
-  return mode==='weapon' ? 1 : 50;
-}
-
-function setMode(m){
-  mode=m;
-
-  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-
-  document.getElementById(
-    m==='weapon'?'tabWeapon':m==='partner'?'tabPartner':'tabSelect'
-  ).classList.add('active');
-
-  document.getElementById('pageTitle').textContent =
-    m==='weapon' ? '一般武器召喚' :
-    m==='partner' ? '召喚同伴' :
-    '新同伴挑選召喚';
-
-  document.getElementById('levelText').textContent =
-    m==='weapon' ? 'Lv.18' : 'Lv.13';
-
-  document.getElementById('onceCost').textContent =
-    m==='weapon' ? '💎 1' : '💎 50';
-
-  document.getElementById('multiCost').textContent =
-    m==='weapon' ? '💎 10' : '💎 500';
-
-  document.getElementById('maxText').textContent=getMax().toLocaleString();
-  document.getElementById('qtyRange').max=getMax();
-
-  document.getElementById('centerHint').textContent =
-    m==='weapon' ? '點下方按鈕開始召喚' : '同伴素材尚未正式加入｜先保留分頁架構';
-
-  const rateInfo=document.getElementById('rateInfo');
-  if(rateInfo) rateInfo.style.display = m==='weapon' ? 'block' : 'none';
-
-  setQty(10);
-  closeResult();
-}
-
-function setQty(v){
-  qty=Math.max(10,Math.min(getMax(),Number(v)||10));
-
-  document.getElementById('qtyRange').value=qty;
-  document.getElementById('amountLeft').textContent=qty.toLocaleString();
-  document.getElementById('amountTop').textContent=qty.toLocaleString();
-  document.getElementById('costText').textContent=(qty*getUnitCost()).toLocaleString();
-}
-
-function changeQty(n){
-  setQty(qty+n);
-}
-
-function openModal(){
-  setQty(10);
-  document.getElementById('modalMask').style.display='flex';
-}
-
-function closeModal(){
-  document.getElementById('modalMask').style.display='none';
-}
-
-function confirmDraw(){
-  closeModal();
-  draw(qty);
-}
-
-function weightedFromObject(rateObj,fallback){
-  const total=Object.values(rateObj).reduce((a,b)=>a+b,0);
   let r=Math.random()*total;
 
-  for(const [key,rate] of Object.entries(rateObj)){
-    r-=rate;
-    if(r<=0)return key;
+  for(const key in obj){
+
+    r-=obj[key];
+
+    if(r<=0){
+      return key;
+    }
+
   }
 
-  return fallback;
 }
 
 function pickWeapon(){
-  const rarity=weightedFromObject(rarityRates,'普通');
-  const tier=weightedFromObject(qualityRates[rarity],'低級');
-  const series=raritySeriesMap[rarity];
 
-  const list=weaponPool.filter(w=>w.series===series && w.tier===tier);
-  const picked=list[Math.floor(Math.random()*list.length)] || weaponPool[0];
+  const rarity=
+  weightedPick(rarityRates);
 
-  const finalRate=(
-    rarityRates[rarity] * qualityRates[rarity][tier] / 100
-  ).toFixed(4).replace(/\.?0+$/,'');
+  const tier=
+  weightedPick(tierRates[rarity]);
 
-  return {...picked,rarity,finalRate};
+  const list=
+  weaponPool.filter(w=>
+    w.rarity===rarity &&
+    w.tier===tier
+  );
+
+  return list[
+    Math.floor(
+      Math.random()*list.length
+    )
+  ];
+
 }
 
 function draw(times){
-  times=Math.max(1,Math.min(getMax(),Number(times)||1));
 
-  if(mode==='weapon'){
-    drawWeapon(times);
-  }else{
-    drawPartnerPlaceholder(times);
-  }
-}
+  const result=document.getElementById("result");
+  const centerHint=document.getElementById("centerHint");
+  const grid=document.getElementById("resultGrid");
+  const summary=document.getElementById("summary");
 
-function drawWeapon(times){
-  const items=[];
+  result.style.display="flex";
+  centerHint.style.display="none";
+
+  const pool=[];
 
   for(let i=0;i<times;i++){
-    items.push(pickWeapon());
+    pool.push(pickWeapon());
   }
 
   const merged={};
 
-  items.forEach(item=>{
+  pool.forEach(item=>{
+
     if(!merged[item.id]){
-      merged[item.id]={...item,count:0};
+
+      merged[item.id]={
+        ...item,
+        count:0
+      };
+
     }
+
     merged[item.id].count++;
+
   });
 
-  const resultItems=Object.values(merged).sort((a,b)=>{
-    const rd=rarityOrder[a.rarity]-rarityOrder[b.rarity];
-    if(rd!==0)return rd;
+  const final=
+  Object.values(merged);
 
-    const td=tierOrder[a.tier]-tierOrder[b.tier];
-    if(td!==0)return td;
+  summary.innerHTML=
+  `本次召喚 ${times.toLocaleString()} 抽｜共 ${final.length} 種武器｜官方邏輯：先抽稀有度，再抽品質`;
 
-    return a.id-b.id;
-  });
+  grid.innerHTML=
+  final.map(item=>`
 
-  const grid=document.getElementById('resultGrid');
-  grid.classList.remove('few','full');
+  <div class="itemWrap">
 
-  if(resultItems.length<=20) grid.classList.add('few');
-  if(resultItems.length>=24) grid.classList.add('full');
+    <img src="${item.src}">
 
-  grid.innerHTML=resultItems.map((item,i)=>`
-    <div class="itemWrap" style="animation-delay:${i*0.012}s">
-      <img src="${item.src}" alt="${item.rarity}${item.tier}" title="${item.rarity}${item.tier}｜實際 ${item.finalRate}%">
-      <div class="count">${item.count.toLocaleString()}</div>
-      <div class="rarityTag">${item.rarity}${item.tier}</div>
+    <div class="count">
+      ${item.count}
     </div>
-  `).join('');
 
-  document.getElementById('summary').textContent =
-    `本次召喚 ${times.toLocaleString()} 抽｜共 ${resultItems.length} 種武器｜官方邏輯：先稀有度，再品質`;
-
-  document.getElementById('centerHint').style.display='none';
-  document.getElementById('result').style.display='flex';
-}
-
-function drawPartnerPlaceholder(times){
-  const grid=document.getElementById('resultGrid');
-
-  grid.innerHTML=`
-    <div class="placeholderCard">
-      <div>同伴抽獎頁先保留</div>
-      <div style="font-size:60%;opacity:.75">
-        之後可接同伴素材、機率、累加邏輯
-      </div>
-      <div style="font-size:55%;color:#ffe56b">
-        本次測試召喚：${times.toLocaleString()} 抽
-      </div>
+    <div class="rarityTag">
+      ${item.rarity}${item.tier}
     </div>
-  `;
 
-  document.getElementById('summary').textContent='同伴頁預留中';
-  document.getElementById('centerHint').style.display='none';
-  document.getElementById('result').style.display='flex';
+  </div>
+
+  `).join("");
+
 }
 
-function closeResult(){
-  document.getElementById('result').style.display='none';
-  document.getElementById('centerHint').style.display='flex';
+function openModal(){
+
+  document.getElementById(
+    "modalMask"
+  ).style.display="flex";
+
 }
 
-setMode('weapon');
+function closeModal(){
+
+  document.getElementById(
+    "modalMask"
+  ).style.display="none";
+
+}
+
+function setQty(v){
+
+  summonQty=
+  Math.max(
+    10,
+    Math.min(5000,parseInt(v))
+  );
+
+  document.getElementById(
+    "qtySlider"
+  ).value=summonQty;
+
+  document.getElementById(
+    "qtyText"
+  ).innerText=
+  summonQty.toLocaleString();
+
+  document.getElementById(
+    "costText"
+  ).innerText=
+  summonQty.toLocaleString();
+
+}
+
+function changeQty(v){
+  setQty(summonQty+v);
+}
+
+function confirmDraw(){
+
+  closeModal();
+
+  draw(summonQty);
+
+}
+
 </script>
 
 </body>
