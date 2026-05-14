@@ -1,1 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>武器召喚 V15 官方機率版</title>
 
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;
+  background:
+    radial-gradient(circle at center,#5d36d6 0%,#1a0d52 40%,#050014 100%);
+  min-height:100vh;
+  overflow-x:hidden;
+  color:white;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background-image:
+    radial-gradient(white 1px,transparent 1px);
+  background-size:40px 40px;
+  opacity:.15;
+  pointer-events:none;
+}
+
+.wrapper{
+  display:flex;
+  min-height:100vh;
+}
+
+/* 左側 */
+
+.sidebar{
+  width:220px;
+  padding:30px 20px;
+  background:rgba(0,0,0,.25);
+  border-right:1px solid rgba(255,255,255,.08);
+}
+
+.logo{
+  font-size:34px;
+  font-weight:900;
+  margin-bottom:40px;
+}
+
+.menu{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+.menuBtn{
+  border:none;
+  height:92px;
+  border-radius:20px;
+  color:white;
+  font-size:28px;
+  font-weight:800;
+  cursor:pointer;
+  background:rgba(255,255,255,.08);
+  transition:.25s;
+}
+
+.menuBtn.active{
+  background:linear-gradient(180deg,#37dfff,#00a3ff);
+  box-shadow:0 0 25px rgba(0,200,255,.5);
+}
+
+.menuBtn:hover{
+  transform:translateY(-2px);
+}
+
+/* 主內容 */
+
+.main{
+  flex:1;
+  padding:24px;
+  display:flex;
+  flex-direction:column;
+}
+
+/* 標題列 */
+
+.topBar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:24px;
+}
+
+.title{
+  font-size:38px;
+  font-weight:900;
+}
+
+.currency{
+  display:flex;
+  gap:20px;
+  font-size:22px;
+  font-weight:700;
+}
+
+/* 資訊列 */
+
+.infoBar{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  margin-bottom:24px;
+}
+
+.infoInner{
+  padding:14px 26px;
+  border-radius:18px;
+  background:rgba(0,0,0,.28);
+  border:1px solid rgba(255,255,255,.1);
+  backdrop-filter:blur(6px);
+  font-size:18px;
+  font-weight:800;
+  text-align:center;
+  line-height:1.6;
+}
+
+/* 武器區 */
+
+.weaponSection{
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+}
+
+/* 稀有度區塊 */
+
+.rarityBlock{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:24px;
+  padding:18px;
+}
+
+.rarityTitle{
+  display:inline-block;
+  padding:10px 18px;
+  border-radius:14px;
+  font-size:22px;
+  font-weight:900;
+  margin-bottom:18px;
+}
+
+.normal{background:#497cff;}
+.rare{background:#00b45a;}
+.epic{background:#7c47ff;}
+.unique{background:#d28d00;}
+.legend{background:#ff3b3b;}
+.myth{background:#ff58b0;}
+.ancient{background:#2a74ff;}
+
+/* 武器格 */
+
+.weaponGrid{
+  display:grid;
+  grid-template-columns:
+    repeat(auto-fit,minmax(140px,1fr));
+  gap:16px;
+}
+
+/* 卡片 */
+
+.card{
+  background:white;
+  color:black;
+  border-radius:18px;
+  padding:12px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+
+.cardTop{
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  height:34px;
+  color:white;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+}
+
+.card img{
+  width:100%;
+  max-width:90px;
+  margin-top:34px;
+}
+
+.lv{
+  font-weight:800;
+  margin-top:4px;
+}
+
+.stars{
+  color:#ffcb2f;
+  font-size:18px;
+  margin-top:6px;
+}
+
+.bar{
+  margin-top:8px;
+  background:#222;
+  border-radius:999px;
+  overflow:hidden;
+  height:18px;
+}
+
+.bar span{
+  display:block;
+  height:100%;
+  width:100%;
+  background:linear-gradient(90deg,#2de1ff,#0059ff);
+}
+
+.count{
+  margin-top:10px;
+  font-size:26px;
+  font-weight:900;
+}
+
+.name{
+  margin-top:4px;
+  font-size:14px;
+  font-weight:800;
+  color:#5c2dff;
+}
+
+/* 底部 */
+
+.bottomBar{
+  margin-top:30px;
+  background:rgba(255,255,255,.08);
+  border-radius:30px;
+  padding:26px;
+  display:flex;
+  justify-content:center;
+  gap:20px;
+  flex-wrap:wrap;
+}
+
+.summonBtn{
+  border:none;
+  min-width:240px;
+  height:82px;
+  border-radius:20px;
+  color:white;
+  font-size:28px;
+  font-weight:900;
+  cursor:pointer;
+  transition:.25s;
+}
+
+.adBtn{
+  background:#8e8e8e;
+}
+
+.oneBtn{
+  background:linear-gradient(180deg,#2ae7ff,#008cff);
+}
+
+.tenBtn{
+  background:linear-gradient(180deg,#d4ff2a,#9ad800);
+}
+
+.summonBtn:hover{
+  transform:translateY(-3px);
+}
+
+/* 手機 */
+
+@media(max-width:1200px){
+
+  .weaponGrid{
+    grid-template-columns:
+      repeat(auto-fit,minmax(130px,1fr));
+  }
+
+}
+
+@media(max-width:900px){
+
+  .wrapper{
+    flex-direction:column;
+  }
+
+  .sidebar{
+    width:100%;
+    border-right:none;
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+
+  .menu{
+    flex-direction:row;
+  }
+
+  .menuBtn{
+    flex:1;
+    font-size:20px;
+    height:70px;
+  }
+
+  .title{
+    font-size:28px;
+  }
+
+  .currency{
+    font-size:16px;
+  }
+
+  .weaponGrid{
+    grid-template-columns:
+      repeat(auto-fit,minmax(110px,1fr));
+  }
+
+}
+
+@media(max-width:640px){
+
+  .weaponGrid{
+    grid-template-columns:
+      repeat(3,minmax(0,1fr));
+  }
+
+  .card img{
+    max-width:72px;
+  }
+
+  .summonBtn{
+    width:100%;
+    min-width:unset;
+  }
+
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+  <!-- 左側 -->
+
+  <aside class="sidebar">
+
+    <div class="logo">🎯</div>
+
+    <div class="menu">
+
+      <button class="menuBtn active">
+        武器召喚
+      </button>
+
+      <button class="menuBtn">
+        同伴召喚
+      </button>
+
+      <button class="menuBtn">
+        新同伴挑選
+      </button>
+
+    </div>
+
+  </aside>
+
+  <!-- 主內容 -->
+
+  <main class="main">
+
+    <div class="topBar">
+
+      <div class="title">
+        一般武器召喚
+      </div>
+
+      <div class="currency">
+        💎 0　
+        💎 無限
+      </div>
+
+    </div>
+
+    <!-- 資訊列 -->
+
+    <div class="infoBar">
+
+      <div class="infoInner">
+        本次召喚 5,000 抽｜共 25 種武器｜官方邏輯：先抽稀有度，再抽品質
+      </div>
+
+    </div>
+
+    <!-- 武器 -->
+
+    <div class="weaponSection">
+
+      <!-- 普通 -->
+
+      <div class="rarityBlock">
+
+        <div class="rarityTitle normal">
+          普通 (39.264%)
+        </div>
+
+        <div class="weaponGrid">
+
+          <div class="card">
+            <div class="cardTop normal">低級</div>
+            <img src="https://i.imgur.com/jZ5Y7Qx.png">
+            <div class="lv">Lv.200</div>
+            <div class="stars">★★★★★</div>
+            <div class="bar"><span></span></div>
+            <div class="count">747</div>
+            <div class="name">普通低級</div>
+          </div>
+
+          <div class="card">
+            <div class="cardTop normal">中級</div>
+            <img src="https://i.imgur.com/jZ5Y7Qx.png">
+            <div class="lv">Lv.200</div>
+            <div class="stars">★★★★★</div>
+            <div class="bar"><span></span></div>
+            <div class="count">587</div>
+            <div class="name">普通中級</div>
+          </div>
+
+          <div class="card">
+            <div class="cardTop normal">高級</div>
+            <img src="https://i.imgur.com/jZ5Y7Qx.png">
+            <div class="lv">Lv.200</div>
+            <div class="stars">★★★★★</div>
+            <div class="bar"><span></span></div>
+            <div class="count">383</div>
+            <div class="name">普通高級</div>
+          </div>
+
+          <div class="card">
+            <div class="cardTop normal">頂級</div>
+            <img src="https://i.imgur.com/jZ5Y7Qx.png">
+            <div class="lv">Lv.200</div>
+            <div class="stars">★★★★★</div>
+            <div class="bar"><span></span></div>
+            <div class="count">188</div>
+            <div class="name">普通頂級</div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- 稀有 -->
+
+      <div class="rarityBlock">
+
+        <div class="rarityTitle rare">
+          稀有 (49.7%)
+        </div>
+
+        <div class="weaponGrid">
+
+          <div class="card">
+            <div class="cardTop rare">低級</div>
+            <img src="https://i.imgur.com/o6M6G6A.png">
+            <div class="lv">Lv.200</div>
+            <div class="stars">★★★★★</div>
+            <div class="bar"><span></span></div>
+            <div class="count">507</div>
+            <div class="name">稀有低級</div>
+          </div>
+
+          <div class="card">
+            <div class="cardTop rare">中級</div>
+            <img src="https://i.imgur.com/o6M6G6A.png">
+            <div class="lv">Lv.200</div>
+            <div class="stars">★★★★★</div>
+            <div class="bar"><span></span></div>
+            <div class="count">252</div>
+            <div class="name">稀有中級</div>
+          </div>
+
+          <div class="card">
+            <div class="cardTop rare">高級</div>
+            <img src="https://i.imgur.com/o6M6G6A.png">
+            <div class="lv">Lv.200</div>
+            <div class="stars">★★★★★</div>
+            <div class="bar"><span></span></div>
+            <div class="count">155</div>
+            <div class="name">稀有高級</div>
+          </div>
+
+          <div class="card">
+            <div class="cardTop rare">頂級</div>
+            <img src="https://i.imgur.com/o6M6G6A.png">
+            <div class="lv">Lv.200</div>
+            <div class="stars">★★★★★</div>
+            <div class="bar"><span></span></div>
+            <div class="count">129</div>
+            <div class="name">稀有頂級</div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- 底部 -->
+
+    <div class="bottomBar">
+
+      <button class="summonBtn adBtn">
+        觀看廣告
+      </button>
+
+      <button class="summonBtn oneBtn">
+        💎 1　召喚1次
+      </button>
+
+      <button class="summonBtn tenBtn">
+        💎 10　一鍵召喚
+      </button>
+
+    </div>
+
+  </main>
+
+</div>
+
+</body>
+</html>
