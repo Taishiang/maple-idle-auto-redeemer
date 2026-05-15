@@ -4,250 +4,86 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>掛機效率分析器</title>
-
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <style>
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,"Noto Sans TC",sans-serif;
-  background:#f5f7fb;
-  color:#111827;
-}
-.container{
-  max-width:480px;
-  margin:auto;
-  padding:20px;
-}
-.homeBtn{
-  display:inline-block;
-  margin-bottom:14px;
-  padding:10px 14px;
-  background:#4f7cff;
-  color:#fff;
-  text-decoration:none;
-  border-radius:10px;
-  font-weight:700;
-}
-h2{
-  text-align:center;
-  margin:8px 0 18px;
-}
-.card{
-  background:#fff;
-  border-radius:14px;
-  padding:16px;
-  margin-bottom:14px;
-  box-shadow:0 4px 14px rgba(0,0,0,.06);
-}
-.upload{
-  text-align:center;
-  padding:18px;
-  border:2px dashed #d1d5db;
-  border-radius:12px;
-  cursor:pointer;
-  color:#374151;
-  font-weight:700;
-}
-#preview{
-  display:none;
-  width:100%;
-  margin-top:12px;
-  border-radius:10px;
-}
-.progress{
-  height:10px;
-  background:#e5e7eb;
-  border-radius:999px;
-  overflow:hidden;
-}
-.bar{
-  height:100%;
-  width:0%;
-  background:linear-gradient(90deg,#4f7cff,#34c759);
-  transition:.4s ease;
-}
-.progress-text{
-  font-size:12px;
-  color:#666;
-  text-align:right;
-  margin-top:6px;
-  line-height:1.5;
-}
-.main{
-  font-size:28px;
-  font-weight:800;
-  color:#4f7cff;
-  text-align:center;
-  margin:10px 0;
-}
-.grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-}
-.box{
-  background:#f9fafb;
-  padding:10px;
-  border-radius:10px;
-  text-align:center;
-}
-.title{
-  font-size:12px;
-  color:#666;
-}
-.value{
-  font-size:16px;
-  font-weight:700;
-  word-break:break-word;
-}
-button{
-  width:100%;
-  border:none;
-  border-radius:12px;
-  padding:13px;
-  font-size:16px;
-  font-weight:800;
-  color:white;
-  background:#4f7cff;
-  cursor:pointer;
-}
-.secondary{
-  background:#6b7280;
-  margin-top:10px;
-}
-.debug{
-  display:none;
-  white-space:pre-wrap;
-  font-size:12px;
-  line-height:1.5;
-  color:#6b7280;
-  background:#f3f4f6;
-  border-radius:10px;
-  padding:10px;
-}
-.warn{
-  color:#d97706;
-  font-size:12px;
-  line-height:1.5;
-  margin-top:8px;
-}
-@media(max-width:480px){
-  .container{padding:14px}
-  .main{font-size:24px}
-}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",Arial,sans-serif;background:#f5f7fb;color:#111827}
+.container{max-width:500px;margin:auto;padding:16px}
+.homeBtn{display:inline-block;margin-bottom:14px;padding:10px 14px;background:#4f7cff;color:white;text-decoration:none;border-radius:10px;font-weight:800}
+h2{text-align:center;margin:8px 0 18px}
+.card{background:white;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 4px 14px rgba(0,0,0,.06)}
+.upload{text-align:center;padding:18px;border:2px dashed #d1d5db;border-radius:12px;cursor:pointer;font-weight:800;color:#374151}
+#preview{display:none;width:100%;margin-top:12px;border-radius:10px}
+.progress{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden}
+.bar{height:100%;width:0%;background:linear-gradient(90deg,#4f7cff,#34c759);transition:.3s}
+.progressText{text-align:right;font-size:12px;color:#666;margin-top:6px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.box{background:#f9fafb;border-radius:10px;padding:10px;text-align:center}
+.title{font-size:12px;color:#666}
+.value{font-size:16px;font-weight:900;word-break:break-word}
+.main{text-align:center;font-size:26px;font-weight:900;color:#4f7cff;margin:8px 0 14px}
+input.manual{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:10px;font-size:16px;margin-top:8px}
+button{width:100%;border:none;border-radius:12px;padding:13px;font-size:16px;font-weight:900;color:white;background:#4f7cff;margin-top:10px}
+.secondary{background:#6b7280}
+.warn{font-size:12px;line-height:1.6;color:#d97706;margin-top:10px;white-space:pre-wrap}
+.debug{display:none;white-space:pre-wrap;font-size:12px;line-height:1.5;color:#6b7280;background:#f3f4f6;border-radius:10px;padding:10px}
+.small{font-size:12px;color:#64748b;line-height:1.6;margin-top:8px}
+@media(max-width:480px){.container{padding:14px}.main{font-size:22px}}
 </style>
 </head>
 
 <body>
-
 <div class="container">
 
 <a href="index.html" class="homeBtn">← 回首頁</a>
-
 <h2>掛機效率分析器</h2>
 
 <div class="card upload" onclick="upload.click()">
   📷 上傳 / 貼上截圖自動分析
-  <input type="file" id="upload" accept="image/*" hidden>
+  <input id="upload" type="file" accept="image/*" hidden>
   <img id="preview">
 </div>
 
 <div class="card">
-  <div class="progress">
-    <div class="bar" id="bar"></div>
+  <div class="progress"><div class="bar" id="bar"></div></div>
+  <div class="progressText" id="progressText">等待圖片...</div>
+</div>
+
+<div class="card">
+  <div class="small">
+    起始 EXP 抓不到時，可手動輸入。底部進度條會優先當作「目前 EXP」。
   </div>
-  <div class="progress-text" id="progressText">
-    等待圖片...
-  </div>
+  <input class="manual" id="manualStart" type="number" step="0.001" placeholder="手動輸入起始 EXP，例如 88.858">
+  <button onclick="recalculate()">用手動起始 EXP 重新計算</button>
 </div>
 
 <div class="card">
   <div class="grid">
-
-    <div class="box">
-      <div class="title">等級</div>
-      <div class="value" id="levelUI">-</div>
-    </div>
-
-    <div class="box">
-      <div class="title">升等時間</div>
-      <div class="value" id="needTimeUI">-</div>
-    </div>
-
-    <div class="box">
-      <div class="title">起始 EXP</div>
-      <div class="value" id="startExpUI">-</div>
-    </div>
-
-    <div class="box">
-      <div class="title">目前 EXP</div>
-      <div class="value" id="endExpUI">-</div>
-    </div>
-
-    <div class="box">
-      <div class="title">獲得 EXP</div>
-      <div class="value" id="gainExpUI">-</div>
-    </div>
-
-    <div class="box">
-      <div class="title">剩餘 EXP</div>
-      <div class="value" id="remainUI">-</div>
-    </div>
-
+    <div class="box"><div class="title">等級</div><div class="value" id="levelUI">-</div></div>
+    <div class="box"><div class="title">升等時間</div><div class="value" id="needTimeUI">-</div></div>
+    <div class="box"><div class="title">起始 EXP</div><div class="value" id="startExpUI">-</div></div>
+    <div class="box"><div class="title">目前 EXP</div><div class="value" id="endExpUI">-</div></div>
+    <div class="box"><div class="title">獲得 EXP</div><div class="value" id="gainExpUI">-</div></div>
+    <div class="box"><div class="title">剩餘 EXP</div><div class="value" id="remainUI">-</div></div>
   </div>
 </div>
 
 <div class="card">
-
   <div class="main" id="perHourUI">-</div>
-
   <div class="grid">
-
-    <div class="box">
-      <div class="title">EXP 每分鐘</div>
-      <div class="value" id="expPerMinUI">-</div>
-    </div>
-
-    <div class="box">
-      <div class="title">EXP 每小時</div>
-      <div class="value" id="expPerHourBoxUI">-</div>
-    </div>
-
-    <div class="box">
-      <div class="title">EXP 每天 24H</div>
-      <div class="value" id="perDayUI">-</div>
-    </div>
-
-    <div class="box">
-      <div class="title">上線時間</div>
-      <div class="value" id="playtimeUI">-</div>
-    </div>
-
-    <div class="box">
-      <div class="title">怪物每分鐘</div>
-      <div class="value" id="monsterMinUI">-</div>
-    </div>
-
-    <div class="box">
-      <div class="title">怪物每小時</div>
-      <div class="value" id="monsterHourUI">-</div>
-    </div>
-
+    <div class="box"><div class="title">EXP 每分鐘</div><div class="value" id="expPerMinUI">-</div></div>
+    <div class="box"><div class="title">EXP 每小時</div><div class="value" id="expPerHourBoxUI">-</div></div>
+    <div class="box"><div class="title">EXP 每天 24H</div><div class="value" id="perDayUI">-</div></div>
+    <div class="box"><div class="title">上線時間</div><div class="value" id="playtimeUI">-</div></div>
+    <div class="box"><div class="title">怪物每分鐘</div><div class="value" id="monsterMinUI">-</div></div>
+    <div class="box"><div class="title">怪物每小時</div><div class="value" id="monsterHourUI">-</div></div>
   </div>
-
   <div class="warn" id="warnUI"></div>
-
 </div>
 
 <div class="card">
-
   <button onclick="copyResult()">一鍵複製結果</button>
-
-  <button class="secondary" onclick="toggleDebug()">
-    查看辨識文字
-  </button>
-
+  <button class="secondary" onclick="toggleDebug()">查看辨識文字</button>
 </div>
 
 <div class="card debug" id="debugBox"></div>
@@ -255,17 +91,16 @@ button{
 </div>
 
 <script>
-
 let lastShare="";
+let lastData=null;
 
 upload.addEventListener("change",e=>{
   const file=e.target.files[0];
-  if(file)run(file);
+  if(file) run(file);
 });
 
 document.addEventListener("paste",e=>{
   if(!e.clipboardData)return;
-
   for(const item of e.clipboardData.items){
     if(item.type.includes("image")){
       run(item.getAsFile());
@@ -275,371 +110,235 @@ document.addEventListener("paste",e=>{
 });
 
 async function run(file){
-
+  resetUI();
   preview.src=URL.createObjectURL(file);
   preview.style.display="block";
-
-  resetUI();
-
   setStatus("準備圖片中...",3);
 
   try{
-
     const img=await loadImage(file);
-
     const zones=makeZones(img);
-
     const texts={};
-
     let debug="";
 
     for(let i=0;i<zones.length;i++){
-
       const z=zones[i];
-
-      setStatus(`辨識 ${z.name}...`,5+Math.round((i/zones.length)*80));
+      setStatus(`辨識 ${z.name}...`,5+Math.round((i/zones.length)*85));
 
       const options={
         logger:m=>{
           if(m.status==="recognizing text"){
-            const p=5+Math.round(((i+m.progress)/zones.length)*80);
+            const p=5+Math.round(((i+m.progress)/zones.length)*85);
             setStatus(`辨識 ${z.name}：${Math.round(m.progress*100)}%`,p);
           }
         }
       };
 
-      if(z.whitelist){
-        options.tessedit_char_whitelist=z.whitelist;
-      }else if(!z.noWhitelist){
-        options.tessedit_char_whitelist="0123456789.,:%LvVPLAYTIMEEXP() ";
-      }
+      if(z.whitelist) options.tessedit_char_whitelist=z.whitelist;
+      if(z.psm) options.tessedit_pageseg_mode=z.psm;
 
-      const res=await Tesseract.recognize(
-        z.canvas,
-        z.lang||"eng",
-        options
-      );
-
+      const res=await Tesseract.recognize(z.canvas,z.lang||"eng",options);
       texts[z.key]=res.data.text||"";
       debug+=`\n\n[${z.name}]\n${res.data.text||""}`;
     }
 
     debugBox.innerText=debug.trim();
+    const data=parseData(texts);
+    lastData=data;
 
-    const data=parseFixedUI(texts);
-
-    if(!data.ok){
-      warnUI.innerText=data.reason+"。可點「查看辨識文字」檢查 OCR 結果。";
-      setStatus(data.reason,100);
-      renderPartial(data);
-      return;
-    }
-
-    render(data);
-
+    renderSmart(data);
     setStatus("分析完成",100);
 
   }catch(err){
-
     console.error(err);
-
-    debugBox.innerText=String(
-      err&&err.stack?err.stack:err
-    );
-
+    debugBox.innerText=String(err&&err.stack?err.stack:err);
     setStatus("分析失敗",100);
-
   }
-
 }
 
 function makeZones(img){
-
   const list=[];
-
-  function add(key,name,x,y,w,h,scale,extra={}){
+  const add=(key,name,x,y,w,h,scale,extra={})=>{
     list.push({
-      key,
-      name,
-      canvas:crop(
-        img,
-        x,
-        y,
-        w,
-        h,
-        scale,
-        extra.mode||"threshold"
-      ),
+      key,name,
+      canvas:crop(img,x,y,w,h,scale,extra.mode||"threshold"),
       ...extra
     });
-  }
+  };
 
-  add("battleLabel","戰鬥狀況文字",0.605,0.240,0.300,0.065,8,{
-    lang:"chi_tra+eng",
-    noWhitelist:true,
-    mode:"normal"
-  });
-
-  add("monsterValue","怪物數值",0.895,0.245,0.090,0.070,12,{
-    whitelist:"0123456789.,"
-  });
-
-  add("playtime","上線時間",0.595,0.325,0.180,0.085,10,{
-    whitelist:"0123456789:"
-  });
-
-  add("rightLevelExp","右側等級EXP",0.765,0.305,0.225,0.130,14,{
-    whitelist:"0123456789.,:%LvV()"
-  });
-
-  add("bottomExp","底部EXP",0.000,0.925,0.420,0.070,12,{
-    whitelist:"0123456789.,:%EXP"
-  });
-
-  add("levelRightLeft","右側白字Lv",0.820,0.315,0.105,0.070,20,{
-    mode:"normal",
-    whitelist:"0123456789LvV."
-  });
-
-  add("levelRightGreen","右側綠字Lv",0.895,0.315,0.105,0.070,20,{
-    mode:"normal",
-    whitelist:"0123456789LvV."
-  });
-
-  add("levelRightGreenBW","右側綠字Lv黑白",0.895,0.315,0.105,0.070,22,{
-    mode:"threshold",
-    whitelist:"0123456789LvV."
-  });
-
-  add("levelBottom","底部Lv",0.410,0.760,0.100,0.075,20,{
-    mode:"normal",
-    whitelist:"0123456789LvV."
-  });
-
-  add("levelBottomBW","底部Lv黑白",0.410,0.760,0.100,0.075,22,{
-    mode:"threshold",
-    whitelist:"0123456789LvV."
-  });
-
-  add("fullImage","全圖備援OCR",0,0,1,1,2,{
-    lang:"eng",
-    whitelist:"0123456789.,:%LvVPLAYTIMEEXP() "
-  });
+  add("bottomExp","底部目前EXP",0.00,0.915,0.48,0.085,16,{whitelist:"0123456789.,:%EXP "});
+  add("bottomExpWide","底部目前EXP寬版",0.00,0.885,0.62,0.115,12,{whitelist:"0123456789.,:%EXP "});
+  add("rightExp","右側戰鬥EXP",0.735,0.290,0.265,0.155,16,{whitelist:"0123456789.,:%LvV() >"});
+  add("rightExpWide","右側戰鬥EXP寬版",0.690,0.270,0.310,0.190,12,{whitelist:"0123456789.,:%LvV() >"});
+  add("playtime","上線時間",0.560,0.300,0.260,0.125,12,{whitelist:"0123456789:"});
+  add("monster","怪物數值",0.860,0.225,0.130,0.105,12,{whitelist:"0123456789.,"});
+  add("levelBottom","底部等級",0.380,0.735,0.150,0.120,18,{whitelist:"0123456789LvV.",mode:"normal"});
+  add("levelRight","右側等級",0.780,0.300,0.220,0.100,18,{whitelist:"0123456789LvV.",mode:"normal"});
+  add("full","全圖備援",0,0,1,1,2,{whitelist:"0123456789.,:%LvVPLAYTIMEEXP() "});
 
   return list;
 }
 
-function crop(img,x,y,w,h,scale,mode="threshold"){
-
+function crop(img,x,y,w,h,scale,mode){
   const canvas=document.createElement("canvas");
-
-  const sx=img.width*x;
-  const sy=img.height*y;
-  const sw=img.width*w;
-  const sh=img.height*h;
-
+  const sx=img.width*x, sy=img.height*y, sw=img.width*w, sh=img.height*h;
   canvas.width=Math.max(1,Math.round(sw*scale));
   canvas.height=Math.max(1,Math.round(sh*scale));
-
   const ctx=canvas.getContext("2d",{willReadFrequently:true});
-
-  ctx.drawImage(
-    img,
-    sx,
-    sy,
-    sw,
-    sh,
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
+  ctx.drawImage(img,sx,sy,sw,sh,0,0,canvas.width,canvas.height);
 
   if(mode==="normal")return canvas;
 
-  const imageData=ctx.getImageData(
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
-
+  const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
   const d=imageData.data;
-
   for(let i=0;i<d.length;i+=4){
-
-    const gray=
-      d[i]*0.299+
-      d[i+1]*0.587+
-      d[i+2]*0.114;
-
+    const gray=d[i]*0.299+d[i+1]*0.587+d[i+2]*0.114;
     const v=gray>125?255:0;
-
     d[i]=d[i+1]=d[i+2]=v;
   }
-
   ctx.putImageData(imageData,0,0);
-
   return canvas;
 }
 
-function parseFixedUI(texts){
+function parseData(texts){
+  const bottomText=cleanText((texts.bottomExp||"")+" "+(texts.bottomExpWide||""));
+  const rightText=cleanText((texts.rightExp||"")+" "+(texts.rightExpWide||""));
+  const fullText=cleanText(texts.full||"");
+  const playText=cleanText((texts.playtime||"")+" "+fullText);
+  const monsterText=cleanText(texts.monster||"");
 
-  const battleLabel=cleanText(texts.battleLabel||"").replace(/\s+/g,"");
-  const monsterText=cleanText(texts.monsterValue||"");
-  const playText=cleanText(texts.playtime||"");
-  const rightLevelExp=cleanText(texts.rightLevelExp||"");
-  const bottomExp=cleanText(texts.bottomExp||"");
-  const fullText=cleanText(texts.fullImage||"");
-
-  const allText=[
-    texts.battleLabel,
-    texts.playtime,
-    texts.rightLevelExp,
-    texts.bottomExp,
-    texts.fullImage
-  ].join(" ");
-
-  const rawAllText=allText.toLowerCase();
-
-  const isEnglish=
-    rawAllText.includes("monster")||
-    rawAllText.includes("kills")||
-    rawAllText.includes("playtime")||
-    rawAllText.includes("auto hunt");
-
-  let level;
-
-  if(isEnglish){
-    level=chooseBestLevel([
-      texts.levelRightLeft,
-      texts.levelRightGreen,
-      texts.levelRightGreenBW,
-      rightLevelExp,
-      fullText
-    ]);
-  }else{
-    level=chooseBestLevel([
-      rightLevelExp,
-      texts.levelBottom,
-      texts.levelBottomBW,
-      fullText
-    ]);
-  }
-
-  const rightPercents=getPercents(rightLevelExp);
-  const bottomPercents=getPercents(bottomExp);
+  const bottomPercents=getPercents(bottomText);
+  const rightPercents=getPercents(rightText);
   const fullPercents=getPercents(fullText);
 
-  let start=NaN;
-  let end=NaN;
+  const currentExp =
+    pickCurrentExp(bottomPercents) ??
+    pickCurrentExp(rightPercents) ??
+    pickCurrentExp(fullPercents);
 
-  if(rightPercents.length>=2){
-    start=rightPercents[0];
-    end=rightPercents[rightPercents.length-1];
-  }else if(rightPercents.length===1 && bottomPercents.length>=1){
-    start=rightPercents[0];
-    end=bottomPercents[bottomPercents.length-1];
-  }else if(bottomPercents.length>=2){
-    start=bottomPercents[0];
-    end=bottomPercents[bottomPercents.length-1];
-  }else if(fullPercents.length>=2){
-    const pair=chooseBestExpPair(fullPercents);
-    start=pair.start;
-    end=pair.end;
+  let startExp = pickStartExp(rightPercents,currentExp);
+
+  const savedStart=Number(localStorage.getItem("lastStartExp")||"");
+  if(!isFinite(startExp) && isFinite(savedStart)) startExp=savedStart;
+
+  const level=chooseBestLevel([
+    texts.levelBottom,texts.levelRight,rightText,fullText
+  ]);
+
+  const time=parseTime(playText);
+  const monsterNumber=firstNumber(monsterText);
+  const monster=normalizeMonster(monsterNumber,time.hours);
+
+  return{
+    level,
+    start:startExp,
+    end:currentExp,
+    hours:time.hours,
+    playtimeText:time.text,
+    monsterPerMinute:monster.perMinute,
+    monsterPerHour:monster.perHour,
+    bottomPercents,
+    rightPercents,
+    fullPercents
+  };
+}
+
+function pickCurrentExp(arr){
+  if(!arr||!arr.length)return null;
+
+  const valid=arr.filter(n=>isFinite(n)&&n>=0&&n<=100);
+  if(!valid.length)return null;
+
+  return valid[valid.length-1];
+}
+
+function pickStartExp(arr,current){
+  if(!arr||arr.length<2||!isFinite(current))return NaN;
+
+  const valid=arr.filter(n=>isFinite(n)&&n>=0&&n<=100);
+  if(valid.length<2)return NaN;
+
+  let best=NaN;
+  for(const n of valid){
+    if(n<current && current-n<30){
+      best=n;
+    }
   }
 
-  if(isFinite(start)&&isFinite(end)&&start>end){
-    if(start-end>50){
-      end=end+100;
-    }else{
+  if(isFinite(best))return best;
+
+  const first=valid[0];
+  if(first!==current)return first;
+
+  return NaN;
+}
+
+function renderSmart(data){
+  const warnings=[];
+
+  if(data.level){
+    levelUI.innerText=`Lv.${data.level}`;
+  }
+
+  if(isFinite(data.end)){
+    endExpUI.innerText=fmt(data.end,3)+"%";
+    remainUI.innerText=fmt(100-data.end,3)+"%";
+    bar.style.width=Math.min(data.end,100)+"%";
+    progressText.innerText=`目前 ${fmt(data.end,3)}% / 100% ｜ 還差 ${fmt(100-data.end,3)}%`;
+  }else{
+    warnings.push("目前 EXP 也抓不到，請確認底部進度條有出現百分比。");
+  }
+
+  if(isFinite(data.start)){
+    manualStart.value=fmt(data.start,3);
+    localStorage.setItem("lastStartExp",String(data.start));
+  }
+
+  if(data.playtimeText){
+    playtimeUI.innerText=data.playtimeText;
+  }else{
+    warnings.push("找不到上線時間，若要算效率需要 PLAYTIME。");
+  }
+
+  if(!isFinite(data.start)){
+    warnings.push("起始 EXP 抓不到，請手動輸入起始 EXP 後按重新計算。");
+  }
+
+  if(isFinite(data.start)&&isFinite(data.end)&&isFinite(data.hours)&&data.hours>0){
+    renderCalculation(data);
+  }else{
+    startExpUI.innerText=isFinite(data.start)?fmt(data.start,3)+"%":"-";
+    perHourUI.innerText="已抓目前 EXP";
+  }
+
+  warnings.push(
+    "辨識結果：\n"+
+    "底部EXP："+safeJoin(data.bottomPercents)+"\n"+
+    "右側EXP："+safeJoin(data.rightPercents)+"\n"+
+    "全圖EXP："+safeJoin(data.fullPercents)
+  );
+
+  warnUI.innerText=warnings.join("\n");
+}
+
+function renderCalculation(data){
+  let start=data.start;
+  let end=data.end;
+
+  if(end<start){
+    if(start-end>50) end+=100;
+    else{
       const tmp=start;
       start=end;
       end=tmp;
     }
   }
 
-  const time=parseTime(playText) || parseTime(fullText);
-
-  const monsterNumber=firstNumber(monsterText);
-
-  const battleMode=detectBattleMode(
-    battleLabel,
-    monsterText,
-    monsterNumber
-  );
-
-  const monster=normalizeMonster(
-    monsterNumber,
-    battleMode,
-    time.hours,
-    monsterText
-  );
-
-  const data={
-    level,
-    start,
-    end,
-    hours:time.hours,
-    playtimeText:time.text,
-    monsterNumber,
-    battleMode,
-    monsterPerMinute:monster.perMinute,
-    monsterPerHour:monster.perHour,
-    totalMonsters:monster.total,
-    rightPercents,
-    bottomPercents,
-    fullPercents
-  };
-
-  if(!level){
-    return{
-      ok:false,
-      reason:"找不到等級 Lv.xxx",
-      ...data
-    };
-  }
-
-  if(!isFinite(start)||!isFinite(end)){
-    return{
-      ok:false,
-      reason:"找不到起始與目前 EXP",
-      ...data
-    };
-  }
-
-  if(!isFinite(time.hours)||time.hours<=0){
-    return{
-      ok:false,
-      reason:"找不到上線時間",
-      ...data
-    };
-  }
-
-  if(end-start<=0){
-    return{
-      ok:false,
-      reason:"EXP 沒有增加或辨識錯誤",
-      ...data
-    };
-  }
-
-  return{
-    ok:true,
-    ...data
-  };
-
-}
-
-function render(data){
-
-  const gain=data.end-data.start;
-  const realEnd=data.end%100;
-
+  const gain=end-start;
+  const realEnd=end%100;
   const perHour=gain/data.hours;
   const perMin=perHour/60;
   const perDay=perHour*24;
-
   const remain=100-realEnd;
   const needHours=remain/perHour;
 
@@ -647,251 +346,52 @@ function render(data){
   const h=Math.floor(needHours%24);
   const m=Math.floor((needHours*60)%60);
 
-  levelUI.innerText=`Lv.${data.level} → Lv.${data.level+1}`;
+  levelUI.innerText=data.level?`Lv.${data.level} → Lv.${data.level+1}`:"-";
   needTimeUI.innerText=`${d}天 ${h}小時 ${m}分`;
-
-  startExpUI.innerText=fmt(data.start%100,3)+"%";
+  startExpUI.innerText=fmt(start%100,3)+"%";
   endExpUI.innerText=fmt(realEnd,3)+"%";
   gainExpUI.innerText=fmt(gain,3)+"%";
   remainUI.innerText=fmt(remain,3)+"%";
-
   perHourUI.innerText=fmt(perHour,3)+"% / 小時";
   expPerMinUI.innerText=fmt(perMin,4)+"%";
   expPerHourBoxUI.innerText=fmt(perHour,3)+"%";
   perDayUI.innerText=fmt(perDay,3)+"%";
   playtimeUI.innerText=data.playtimeText||"-";
 
-  monsterMinUI.innerText=
-    isFinite(data.monsterPerMinute)
-    ?fmt(data.monsterPerMinute,1)+" 隻"
-    :"-";
-
-  monsterHourUI.innerText=
-    isFinite(data.monsterPerHour)
-    ?fmt(data.monsterPerHour,0)+" 隻"
-    :"-";
-
-  bar.style.width=Math.min(realEnd,100)+"%";
-
-  const warnings=[];
-
-  if(data.hours<0.5){
-    warnings.push("樣本低於30分鐘，建議掛滿1小時以上更準。");
-  }
-
-  if(data.battleMode==="fallback"){
-    warnings.push("戰鬥狀況辨識不完整。");
-  }
-
-  warnUI.innerText=warnings.join(" ");
-
-  progressText.innerText=
-    `目前 ${fmt(realEnd,3)}% / 100% ｜ 還差 ${fmt(remain,3)}%`;
+  monsterMinUI.innerText=isFinite(data.monsterPerMinute)?fmt(data.monsterPerMinute,1)+" 隻":"-";
+  monsterHourUI.innerText=isFinite(data.monsterPerHour)?fmt(data.monsterPerHour,0)+" 隻":"-";
 
   lastShare=
 `掛機效率分析
-Lv.${data.level} → Lv.${data.level+1}
-起始 EXP：${fmt(data.start%100,3)}%
+${data.level?`Lv.${data.level} → Lv.${data.level+1}`:"等級：-"}
+起始 EXP：${fmt(start%100,3)}%
 目前 EXP：${fmt(realEnd,3)}%
 獲得 EXP：${fmt(gain,3)}%
 EXP效率：約 ${fmt(perHour,3)}% / 小時
+EXP每天24H：約 ${fmt(perDay,3)}%
 預估升等：${d}天 ${h}小時 ${m}分
-上線時間：${data.playtimeText}
-怪物：約 ${fmt(data.monsterPerMinute,1)} 隻/分鐘，${fmt(data.monsterPerHour,0)} 隻/小時`;
-
+上線時間：${data.playtimeText||"-"}`;
 }
 
-function renderPartial(data){
-
-  if(data.level){
-    levelUI.innerText=`Lv.${data.level}`;
+function recalculate(){
+  if(!lastData){
+    alert("請先上傳圖片");
+    return;
   }
 
-  if(isFinite(data.start)){
-    startExpUI.innerText=fmt(data.start%100,3)+"%";
+  const v=Number(manualStart.value);
+  if(!isFinite(v)||v<0||v>100){
+    alert("請輸入 0~100 的起始 EXP");
+    return;
   }
 
-  if(isFinite(data.end)){
-    endExpUI.innerText=fmt(data.end%100,3)+"%";
-  }
-
-  if(data.playtimeText){
-    playtimeUI.innerText=data.playtimeText;
-  }
-
-  const hints=[];
-
-  if(data.rightPercents&&data.rightPercents.length){
-    hints.push("右側EXP："+data.rightPercents.join(", "));
-  }
-
-  if(data.bottomPercents&&data.bottomPercents.length){
-    hints.push("底部EXP："+data.bottomPercents.join(", "));
-  }
-
-  if(data.fullPercents&&data.fullPercents.length){
-    hints.push("全圖EXP："+data.fullPercents.slice(0,8).join(", "));
-  }
-
-  if(hints.length){
-    warnUI.innerText += "\n已辨識到：" + hints.join(" ｜ ");
-  }
-
+  lastData.start=v;
+  localStorage.setItem("lastStartExp",String(v));
+  warnUI.innerText="";
+  renderSmart(lastData);
 }
 
-function chooseBestExpPair(arr){
-
-  const clean=arr
-    .filter(n=>isFinite(n)&&n>=0&&n<=100)
-    .map(n=>Number(n.toFixed(3)));
-
-  if(clean.length<2){
-    return{
-      start:NaN,
-      end:NaN
-    };
-  }
-
-  for(let i=0;i<clean.length-1;i++){
-    const a=clean[i];
-    const b=clean[i+1];
-
-    if(b>a && b-a<20){
-      return{
-        start:a,
-        end:b
-      };
-    }
-  }
-
-  return{
-    start:clean[0],
-    end:clean[clean.length-1]
-  };
-}
-
-function detectBattleMode(label,numberText,value){
-
-  const s=String(label||"")
-    .replace(/\s+/g,"")
-    .replace(/[Oo]/g,"0");
-
-  if(s.includes("每分鐘")||s.includes("分鐘"))return"minute";
-  if(s.includes("每小時")||s.includes("小時"))return"hour";
-  if(s.includes("目前狩獵")||s.includes("目前")||s.includes("總"))return"total";
-
-  const raw=String(numberText||"");
-  const hasDecimal=/[\.,]/.test(raw);
-
-  if(hasDecimal&&isFinite(value)&&value>=1000)return"hour";
-  if(hasDecimal&&isFinite(value)&&value<1000)return"minute";
-  if(isFinite(value)&&value>=1000)return"total";
-  if(isFinite(value)&&value>0)return"minute";
-
-  return"fallback";
-}
-
-function normalizeMonster(value,mode,hours,rawText=""){
-
-  let total=NaN;
-  let perMinute=NaN;
-  let perHour=NaN;
-
-  if(!isFinite(value)||value<=0){
-    return{total,perMinute,perHour};
-  }
-
-  let finalMode=mode;
-
-  if(finalMode==="auto"){
-    finalMode=detectBattleMode("",rawText,value);
-  }
-
-  if(finalMode==="minute"){
-    perMinute=value;
-    perHour=value*60;
-    total=isFinite(hours)?perHour*hours:NaN;
-  }
-
-  if(finalMode==="hour"){
-    perHour=value;
-    perMinute=value/60;
-    total=isFinite(hours)?perHour*hours:NaN;
-  }
-
-  if(finalMode==="total"){
-    total=value;
-    perHour=isFinite(hours)&&hours>0?value/hours:NaN;
-    perMinute=perHour/60;
-  }
-
-  return{total,perMinute,perHour};
-}
-
-function cleanText(t){
-  return String(t||"")
-    .replace(/[，]/g,".")
-    .replace(/[％]/g,"%")
-    .replace(/[Oo]/g,"0")
-    .replace(/[Il|]/g,"1")
-    .replace(/[（]/g,"(")
-    .replace(/[）]/g,")")
-    .replace(/\s+/g," ")
-    .trim();
-}
-
-function getLevelCandidatesFromText(t){
-
-  const s=String(t||"")
-    .replace(/[Oo]/g,"0")
-    .replace(/[Il|]/g,"1");
-
-  const candidates=[];
-
-  const lvMatches=s.match(/L\s*v?\s*\.?\s*(\d{2,3})/gi)||[];
-
-  lvMatches.forEach(x=>{
-    const m=x.match(/\d{2,3}/);
-    if(m)candidates.push(Number(m[0]));
-  });
-
-  const nums=s.match(/\d{2,3}/g)||[];
-
-  nums.forEach(x=>{
-    candidates.push(Number(x));
-  });
-
-  return candidates.filter(n=>
-    isFinite(n)&&n>=10&&n<=250
-  );
-}
-
-function chooseBestLevel(levelTexts){
-
-  let all=[];
-
-  levelTexts.forEach(t=>{
-    all=all.concat(getLevelCandidatesFromText(t));
-  });
-
-  all=all.filter(n=>n>=10&&n<=250);
-
-  if(!all.length)return null;
-
-  const counts={};
-
-  all.forEach(n=>{
-    counts[n]=(counts[n]||0)+1;
-  });
-
-  return Object.keys(counts)
-    .map(Number)
-    .sort((a,b)=>counts[b]-counts[a]||a-b)[0];
-}
-
-/* 這段是本次重點修正版 */
 function getPercents(t){
-
   let s=String(t||"")
     .replace(/[％]/g,"%")
     .replace(/[，,]/g,".")
@@ -901,55 +401,31 @@ function getPercents(t){
 
   const arr=[];
 
-  const percentMatches=s.match(/\d{1,3}(?:[\.\s]\d{1,6})?\s*%/g)||[];
+  const patterns=[
+    /\d{1,3}(?:[\.\s]\d{1,6})?\s*%/g,
+    /\d{1,3}[\.\s]\d{2,6}/g,
+    /\b\d{4,6}\b/g
+  ];
 
-  percentMatches.forEach(x=>{
-    const n=normalizePercentValue(x);
-    if(isFinite(n))arr.push(n);
-  });
-
-  const lvParenMatches=s.match(/L\s*v?\s*\.?\s*\d{1,3}\s*[\>\»]*\s*L?\s*v?\.?\s*\d{0,3}\s*[\(\[]?\s*\d{1,3}(?:[\.\s]\d{1,6})?/gi)||[];
-
-  lvParenMatches.forEach(x=>{
-    const pieces=x.match(/\d{1,3}(?:[\.\s]\d{1,6})?/g)||[];
-    if(pieces.length){
-      const last=pieces[pieces.length-1];
-      const n=normalizePercentValue(last);
-      if(isFinite(n))arr.push(n);
-    }
-  });
-
-  if(arr.length<2){
-
-    const loose=s.match(/\d{1,3}[\.\s]\d{2,6}/g)||[];
-
-    loose.forEach(x=>{
+  for(const p of patterns){
+    const matches=s.match(p)||[];
+    for(const x of matches){
       const n=normalizePercentValue(x);
-      if(isFinite(n))arr.push(n);
-    });
-
+      if(isFinite(n)&&n>=0&&n<=100) arr.push(Number(n.toFixed(3)));
+    }
   }
 
   const final=[];
-
-  arr.forEach(n=>{
-    n=Number(n.toFixed(3));
-
-    if(n>=0&&n<=100){
-      const prev=final[final.length-1];
-      if(prev===undefined || Math.abs(prev-n)>0.001){
-        final.push(n);
-      }
+  for(const n of arr){
+    const last=final[final.length-1];
+    if(last===undefined || Math.abs(last-n)>0.001){
+      final.push(n);
     }
-  });
-
+  }
   return final;
 }
 
 function normalizePercentValue(v){
-
-  if(v===null||v===undefined)return NaN;
-
   let raw=String(v)
     .replace("%","")
     .replace(/[，,]/g,".")
@@ -965,40 +441,23 @@ function normalizePercentValue(v){
   }
 
   const parts=raw.split(".").filter(Boolean);
-
   if(parts.length>2){
     raw=parts[0]+"."+parts.slice(1).join("");
   }
 
   let n=parseFloat(raw);
-
   if(!isFinite(n))return NaN;
 
-  if(n>1000){
-    n=n/1000;
-  }
-
-  if(n>100){
-    n=n/10;
-  }
-
-  if(n>100){
-    return NaN;
-  }
+  if(n>1000)n=n/1000;
+  if(n>100)n=n/10;
+  if(n>100)return NaN;
 
   return Number(n.toFixed(3));
 }
 
 function parseTime(t){
-
   const m=String(t||"").match(/(\d{1,3})[:：](\d{2})[:：](\d{2})/);
-
-  if(!m){
-    return{
-      hours:NaN,
-      text:""
-    };
-  }
+  if(!m)return{hours:NaN,text:""};
 
   const h=Number(m[1]);
   const mi=Number(m[2]);
@@ -1006,101 +465,118 @@ function parseTime(t){
 
   return{
     hours:h+mi/60+s/3600,
-    text:
-      `${String(h).padStart(2,"0")}:`+
-      `${String(mi).padStart(2,"0")}:`+
-      `${String(s).padStart(2,"0")}`
+    text:`${String(h).padStart(2,"0")}:${String(mi).padStart(2,"0")}:${String(s).padStart(2,"0")}`
   };
 }
 
-function firstNumber(t){
-
-  const s=String(t||"").replace(/[Oo]/g,"0");
-
-  const decimal=s.match(/\d{1,7}[\.,]\d+/);
-
-  if(decimal){
-    return Number(decimal[0].replace(",","."));
+function chooseBestLevel(texts){
+  let all=[];
+  for(const t of texts){
+    const s=String(t||"").replace(/[Oo]/g,"0").replace(/[Il|]/g,"1");
+    const lv=s.match(/L\s*v?\s*\.?\s*(\d{2,3})/gi)||[];
+    for(const x of lv){
+      const m=x.match(/\d{2,3}/);
+      if(m)all.push(Number(m[0]));
+    }
+    const nums=s.match(/\d{2,3}/g)||[];
+    for(const x of nums)all.push(Number(x));
   }
 
+  all=all.filter(n=>isFinite(n)&&n>=10&&n<=250);
+  if(!all.length)return null;
+
+  const counts={};
+  all.forEach(n=>counts[n]=(counts[n]||0)+1);
+
+  return Object.keys(counts).map(Number).sort((a,b)=>counts[b]-counts[a]||a-b)[0];
+}
+
+function firstNumber(t){
+  const s=String(t||"").replace(/[Oo]/g,"0");
+  const decimal=s.match(/\d{1,7}[\.,]\d+/);
+  if(decimal)return Number(decimal[0].replace(",","."));
   const normal=s.match(/\d{1,7}/);
-
   if(!normal)return NaN;
-
   return Number(normal[0]);
 }
 
+function normalizeMonster(value,hours){
+  let perMinute=NaN,perHour=NaN;
+
+  if(!isFinite(value)||value<=0)return{perMinute,perHour};
+
+  if(value>=1000 && isFinite(hours)&&hours>0){
+    perHour=value/hours;
+    perMinute=perHour/60;
+  }else{
+    perMinute=value;
+    perHour=value*60;
+  }
+
+  return{perMinute,perHour};
+}
+
+function cleanText(t){
+  return String(t||"")
+    .replace(/[，]/g,".")
+    .replace(/[％]/g,"%")
+    .replace(/[Oo]/g,"0")
+    .replace(/[Il|]/g,"1")
+    .replace(/[（]/g,"(")
+    .replace(/[）]/g,")")
+    .replace(/\s+/g," ")
+    .trim();
+}
+
+function safeJoin(arr){
+  return arr&&arr.length?arr.join(", "):"無";
+}
+
 function fmt(n,d=3){
-
   if(!isFinite(n))return"-";
-
-  return Number(n)
-    .toFixed(d)
-    .replace(/\.?0+$/,'');
+  return Number(n).toFixed(d).replace(/\.?0+$/,"");
 }
 
 function loadImage(file){
-
   return new Promise((resolve,reject)=>{
     const img=new Image();
     img.onload=()=>resolve(img);
     img.onerror=reject;
     img.src=URL.createObjectURL(file);
   });
-
 }
 
 function setStatus(text,progress){
-
   progressText.innerText=text;
-
-  bar.style.width=
-    Math.max(0,Math.min(progress,100))+"%";
+  bar.style.width=Math.max(0,Math.min(progress,100))+"%";
 }
 
 function resetUI(){
-
   lastShare="";
+  lastData=null;
   warnUI.innerText="";
   debugBox.innerText="";
-
-  levelUI.innerText="-";
-  needTimeUI.innerText="-";
-  startExpUI.innerText="-";
-  endExpUI.innerText="-";
-  gainExpUI.innerText="-";
-  remainUI.innerText="-";
-  perHourUI.innerText="-";
-  expPerMinUI.innerText="-";
-  expPerHourBoxUI.innerText="-";
-  perDayUI.innerText="-";
-  playtimeUI.innerText="-";
-  monsterMinUI.innerText="-";
-  monsterHourUI.innerText="-";
-
+  [
+    levelUI,needTimeUI,startExpUI,endExpUI,gainExpUI,remainUI,
+    perHourUI,expPerMinUI,expPerHourBoxUI,perDayUI,playtimeUI,
+    monsterMinUI,monsterHourUI
+  ].forEach(el=>el.innerText="-");
   bar.style.width="0%";
+  progressText.innerText="準備分析...";
 }
 
 function copyResult(){
-
   if(!lastShare){
-    alert("尚未有結果");
+    alert("尚未有完整計算結果");
     return;
   }
-
   navigator.clipboard.writeText(lastShare);
-
   alert("已複製結果");
 }
 
 function toggleDebug(){
-
-  debugBox.style.display=
-    debugBox.style.display==="block"
-    ?"none"
-    :"block";
+  debugBox.style.display=debugBox.style.display==="block"?"none":"block";
 }
-
 </script>
 
 </body>
