@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>掛機效率分析器｜嚴格括號EXP版</title>
+<title>掛機效率分析器｜右側EXP安全寬鬆版</title>
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
@@ -1090,70 +1090,112 @@ function chooseBestLevel(levelTexts){
 function getPercents(t){
 
   /*
-    嚴格版：
-    只接受右側戰鬥視窗括號內的百分比：
-    (88.858%)、(89.247%)
+    右側 EXP 行專用：
+    接受：
+    (88.858%)
+    (88.858)
+    88.858%
+    88.858
 
     禁止：
     81,473
     1,500
     10,545
-    這些道具數量被當 EXP。
+    因為逗號數字不會被當 EXP。
   */
 
   const s=String(t||"")
-    .replace(/[，]/g,".")
     .replace(/[％]/g,"%")
     .replace(/[Oo]/g,"0")
     .replace(/[Il|]/g,"1");
 
   const arr=[];
 
-  const regex=/\(\s*(\d{1,2}(?:[.\s]\d{1,6})?)\s*%\s*\)/g;
+  const patterns=[
+    /\(\s*(\d{1,2}(?:\.\d{2,6}|\s+\d{2,6})?)\s*%?\s*\)/g,
+    /(^|[^,\d])(\d{1,2}(?:\.\d{2,6}|\s+\d{2,6})?)\s*%/g,
+    /(^|[^,\d])(\d{1,2}\.\d{2,6})(?!\d|,)/g
+  ];
 
-  let m;
+  for(const regex of patterns){
 
-  while((m=regex.exec(s))!==null){
+    let m;
 
-    const n=normalizePercentValue(m[1]);
+    while((m=regex.exec(s))!==null){
 
-    if(
-      isFinite(n)&&
-      n>=0&&
-      n<=100
-    ){
-      arr.push(Number(n.toFixed(3)));
+      const raw=m[2]!==undefined?m[2]:m[1];
+
+      const n=normalizePercentValue(raw);
+
+      if(
+        isFinite(n)&&
+        n>=0&&
+        n<=100
+      ){
+        arr.push(Number(n.toFixed(3)));
+      }
+
     }
 
   }
 
-  return arr;
+  const final=[];
+
+  for(const n of arr){
+    const last=final[final.length-1];
+    if(last===undefined || Math.abs(last-n)>0.001){
+      final.push(n);
+    }
+  }
+
+  return final;
 }
 
 function getBottomCurrentPercent(t){
 
   /*
-    底部只抓 EXP 目前值。
-    只接受有 % 的數字，不接受純數字。
+    底部 EXP 只校正目前值。
+    因為底部裁切區只有 EXP 條，所以可接受 89.247% 或 89.247。
+    但仍不接受 81,473 / 1,500 這類逗號數字。
   */
 
   const s=String(t||"")
-    .replace(/[，]/g,".")
     .replace(/[％]/g,"%")
     .replace(/[Oo]/g,"0")
     .replace(/[Il|]/g,"1");
 
-  const matches=s.match(
-    /(\d{1,2}(?:[.\s]\d{1,6})?)\s*%/g
-  )||[];
+  const matches=[];
+
+  const patterns=[
+    /(^|[^,\d])(\d{1,2}(?:\.\d{2,6}|\s+\d{2,6})?)\s*%/g,
+    /(^|[^,\d])(\d{1,2}\.\d{2,6})(?!\d|,)/g
+  ];
+
+  for(const regex of patterns){
+
+    let m;
+
+    while((m=regex.exec(s))!==null){
+
+      const raw=m[2]!==undefined?m[2]:m[1];
+
+      const n=normalizePercentValue(raw);
+
+      if(
+        isFinite(n)&&
+        n>=0&&
+        n<=100
+      ){
+        matches.push(Number(n.toFixed(3)));
+      }
+
+    }
+
+  }
 
   if(!matches.length)return NaN;
 
-  const last=matches[matches.length-1];
-
-  const n=normalizePercentValue(last);
-
-  return isFinite(n)?Number(n.toFixed(3)):NaN;
+  return matches[matches.length-1];
 }
 
 function normalizePercentValue(v){
