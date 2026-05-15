@@ -319,12 +319,6 @@ function makeZones(img){
     });
   }
 
-  /*
-    你的畫面重點：
-    右側黑框 Lv.106 (88.858%) → Lv.106 (89.247%)
-    底部 EXP 89.247% 只當驗證目前值
-  */
-
   add("rightExpMain","右側EXP主區",0.800,0.310,0.200,0.115,20,{
     whitelist:"0123456789.,:%LvV() "
   });
@@ -345,7 +339,7 @@ function makeZones(img){
     whitelist:"0123456789.,:%()"
   });
 
-  add("bottomExp","底部目前EXP",0.000,0.925,0.300,0.065,18,{
+  add("bottomExp","底部目前EXP驗證",0.000,0.925,0.300,0.065,18,{
     whitelist:"0123456789.,:%EXP "
   });
 
@@ -363,10 +357,6 @@ function makeZones(img){
 
   add("levelBottom","底部等級",0.410,0.760,0.120,0.080,18,{
     whitelist:"0123456789LvV."
-  });
-
-  add("full","全圖備援",0,0,1,1,2,{
-    whitelist:"0123456789.,:%LvVPLAYTIMEEXP() "
   });
 
   return list;
@@ -417,33 +407,23 @@ function parseData(texts){
   ].join(" "));
 
   const bottomText=cleanText(texts.bottomExp||"");
-  const fullText=cleanText(texts.full||"");
-  const playText=cleanText((texts.playtime||"")+" "+fullText);
+  const playText=cleanText(texts.playtime||"");
   const monsterText=cleanText(texts.monster||"");
 
   const rightPercents=getPercents(rightText);
   const startOnlyPercents=getPercents(texts.rightStartOnly||"");
   const endOnlyPercents=getPercents(texts.rightEndOnly||"");
   const bottomPercents=getPercents(bottomText);
-  const fullPercents=getPercents(fullText);
 
   let start=NaN;
   let end=NaN;
 
-  /*
-    第一優先：
-    右側戰鬥視窗兩個百分比
-  */
   if(rightPercents.length>=2){
     const pair=chooseBattlePair(rightPercents);
     start=pair.start;
     end=pair.end;
   }
 
-  /*
-    第二優先：
-    左右分區各抓一個
-  */
   if(!isFinite(start)||!isFinite(end)){
     if(startOnlyPercents.length && endOnlyPercents.length){
       start=startOnlyPercents[startOnlyPercents.length-1];
@@ -451,11 +431,6 @@ function parseData(texts){
     }
   }
 
-  /*
-    第三優先：
-    右側起始 + 底部目前
-    注意：底部只當目前值，不當起始
-  */
   if(!isFinite(start)||!isFinite(end)){
     const bottomCurrent=bottomPercents.length ? bottomPercents[bottomPercents.length-1] : NaN;
 
@@ -468,23 +443,6 @@ function parseData(texts){
     }
   }
 
-  /*
-    第四優先：
-    全圖如果真的剛好讀到兩個連續接近 EXP，才使用
-  */
-  if(!isFinite(start)||!isFinite(end)){
-    const pair=chooseBattlePair(fullPercents);
-    if(isFinite(pair.start)&&isFinite(pair.end)){
-      start=pair.start;
-      end=pair.end;
-    }
-  }
-
-  /*
-    底部目前值驗證：
-    若底部有 89.247，右側目前抓成 89.24796 或 89247，
-    以底部為準。
-  */
   if(bottomPercents.length && isFinite(end)){
     const bottomCurrent=bottomPercents[bottomPercents.length-1];
     if(Math.abs(bottomCurrent-end)<1){
@@ -505,8 +463,7 @@ function parseData(texts){
   const level=chooseBestLevel([
     texts.levelRight,
     texts.levelBottom,
-    rightText,
-    fullText
+    rightText
   ]);
 
   const time=parseTime(playText);
@@ -525,8 +482,7 @@ function parseData(texts){
     rightPercents,
     startOnlyPercents,
     endOnlyPercents,
-    bottomPercents,
-    fullPercents
+    bottomPercents
   };
 
   if(!level){
@@ -576,10 +532,6 @@ function chooseBattlePair(arr){
     return{start:NaN,end:NaN};
   }
 
-  /*
-    找最像掛機前後的連續 pair：
-    b > a，而且差距合理，通常小於 20%
-  */
   let best=null;
 
   for(let i=0;i<clean.length-1;i++){
@@ -596,9 +548,6 @@ function chooseBattlePair(arr){
 
   if(best)return best;
 
-  /*
-    備案：找整串中第一個較小 + 後面較大
-  */
   for(let i=0;i<clean.length;i++){
     for(let j=i+1;j<clean.length;j++){
       const a=clean[i];
@@ -700,8 +649,7 @@ function renderFail(data){
     "右側EXP："+safeJoin(data.rightPercents)+"\n"+
     "左側分區："+safeJoin(data.startOnlyPercents)+"\n"+
     "右側分區："+safeJoin(data.endOnlyPercents)+"\n"+
-    "底部目前："+safeJoin(data.bottomPercents)+"\n"+
-    "全圖："+safeJoin((data.fullPercents||[]).slice(0,12))+"\n\n"+
+    "底部目前："+safeJoin(data.bottomPercents)+"\n\n"+
     "請點「查看辨識文字」看 OCR 實際讀到什麼。";
 }
 
@@ -862,9 +810,6 @@ function normalizeMonster(value,hours){
     };
   }
 
-  /*
-    11125 這種大數字 = 總怪物數
-  */
   if(value>=1000 && isFinite(hours)&&hours>0){
     perHour=value/hours;
     perMinute=perHour/60;
